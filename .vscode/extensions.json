@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "jetbrains.resharper-code",
         "vue.volar"
     ]
 }
