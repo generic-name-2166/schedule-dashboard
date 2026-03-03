@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using nietras.SeparatedValues;
 
@@ -21,8 +22,23 @@ public static class Mutation
 
             foreach (var row in reader)
             {
-                var id = row["Ид"].Span;
+                ReadOnlySpan<char> id = row["Ид"].Span;
                 Console.WriteLine(id.ToString());
+                DateTime start = DateTime.ParseExact(
+                    row["Начало"].Span,
+                    "dd.MM.yyyy",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None
+                );
+                DateTime end = DateTime.ParseExact(
+                    row["Окончание"].Span,
+                    "dd.MM.yyyy",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None
+                );
+                TimeSpan difference = end - start;
+                double daysDiff = difference.TotalDays;  
+                int wholeDays = difference.Days;
             }
         }
         catch (Exception ex)
