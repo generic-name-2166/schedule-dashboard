@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import Schedule from "~/components/Schedule.vue";
+
+const query = `
+  query {
+    scheduleObjects {
+      id
+      level
+      wbsCode
+      code
+      name
+      start
+      end
+    }
+  }
+`;
+const params = new URLSearchParams({
+  query,
+});
+const url: string = window
+  ? `/graphql?${params}`
+  : `http://localhost:5095/graphql?${params}`;
+
+const response = await fetch(url).then((r) => r.json());
+</script>
+
 <template>
   <div class="heading">
     <h1>График строительства</h1>
@@ -32,7 +58,8 @@
       </menu>
     </div>
   </div>
-  <p>hello world</p>
+  <Schedule :tasks="response.data.scheduleObjects" />
+  <pre>{{ response }}</pre>
 </template>
 
 <style lang="postcss" scoped>
