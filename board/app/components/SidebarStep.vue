@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import type { ScheduleNode } from "../stores/schedule.ts";
 
 const props = defineProps<{
   node: ScheduleNode;
@@ -16,8 +17,8 @@ const children = computed<ScheduleNode[]>(
 </script>
 
 <template>
-  <details open>
-    <summary :class="{ leaf: children.length === 0 }">
+  <details open class="details">
+    <summary :class="{ leaf: children.length === 0 }" class="summary">
       {{ props.node.name }}
     </summary>
     <div class="children">
@@ -32,73 +33,49 @@ const children = computed<ScheduleNode[]>(
 </template>
 
 <style scoped>
-/* Tree structure styling */
-details {
-  position: relative;
-  margin-left: 20px;
+.details {
   border-left: 2px solid #e0e0e0;
   padding-left: 12px;
-  margin-bottom: 8px;
+
+  /* Remove left border for leaf nodes */
+  &:not(:has(.details)) {
+    border-left: none;
+
+    &::before {
+      display: none;
+    }
+  }
 }
 
-/* Connecting line from parent to children */
-details::before {
-  content: '';
-  position: absolute;
-  left: -2px;
-  top: 22px; /* Position at summary height */
-  width: 10px;
-  height: 2px;
-  background-color: #e0e0e0;
-}
-
-/* Remove bottom line for last child */
-details:last-child::before {
-  height: 50%;
-}
-
-/* Summary styling */
-summary {
+.summary {
+  list-style-type: none;
+  position: relative;
   cursor: pointer;
-  padding: 4px 8px;
   border-radius: 4px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
   transition: all 0.2s ease;
-}
 
-summary:hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
-}
+  height: 60px;
 
-/* Leaf nodes (no children) styling */
-summary.leaf {
-  list-style: none;
-  border-left: 3px solid #28a745;
-  background: #f1f8f1;
-  border-color: #c3e6cb;
-}
+  &::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    width: 10px;
+    height: 2px;
+    background-color: #e0e0e0;
+  }
 
-/* Children container */
-.children {
-  margin-top: 4px;
-}
+  &:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+  }
 
-/* Remove left border for leaf nodes */
-details:not(:has(details)) {
-  border-left: none;
-}
-
-details:not(:has(details))::before {
-  display: none;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  details {
-    margin-left: 16px;
-    padding-left: 8px;
+  &.leaf {
+    list-style: none;
+    border-left: 3px solid #28a745;
+    background: #f1f8f1;
+    border-color: #c3e6cb;
   }
 }
 </style>

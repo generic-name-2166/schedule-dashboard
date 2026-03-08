@@ -3,7 +3,7 @@ import {
   collectTree,
   useScheduleStore,
   type ScheduleNode,
-} from "~/stores/schedule.ts";
+} from "../stores/schedule.ts";
 import Sidebar from "./Sidebar.vue";
 
 const store = useScheduleStore();
@@ -13,28 +13,17 @@ const { roots, childrenMap } = collectTree(nodes);
 </script>
 
 <template>
-  <div class="gantt-container">
+  <div class="gantt-chart">
     <Sidebar :nodes="nodes" :roots="roots" :childrenMap="childrenMap" />
 
-    <!-- Timeline -->
-    <!-- <svg
-      class="timeline"
-      :width="chartWidth"
-      :height="visibleRows.length * rowHeight"
-    >
-      <g v-for="(node, index) of visibleRows" :key="'bar-' + node.id">
-        <rect
-          :x="getX(node.start)"
-          :y="index * rowHeight + 5"
-          :width="getWidth(node.start, node.end)"
-          :height="rowHeight - 10"
-          rx="4"
-          class="bar"
-        />
-      </g>
-    </svg> -->
+    <Timeline :nodes="nodes" />
   </div>
 </template>
 
 <style scoped>
+.gantt-chart {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
 </style>

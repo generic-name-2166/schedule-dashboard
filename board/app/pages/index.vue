@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Schedule from "~/components/Schedule.vue";
+import Schedule from "../components/Schedule.vue";
 
 const query = `
   query {
@@ -59,7 +59,6 @@ const response = await fetch(url).then((r) => r.json());
     </div>
   </div>
   <Schedule :tasks="response.data.scheduleObjects" />
-  <pre>{{ response }}</pre>
 </template>
 
 <style lang="postcss" scoped>

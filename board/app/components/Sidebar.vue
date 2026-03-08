@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScheduleNode } from "~/stores/schedule.ts";
+import type { ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
 
 const props = defineProps<{

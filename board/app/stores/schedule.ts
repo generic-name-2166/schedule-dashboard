@@ -7,9 +7,9 @@ export interface ScheduleNode {
   code: string;
   name: string;
   /** Date */
-  start: string;
+  start?: string;
   /** Date */
-  end: string;
+  end?: string;
 }
 
 export interface ScheduleTreeLike {

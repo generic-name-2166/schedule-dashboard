@@ -1,10 +1,6 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
-  "compilerOptions": {
-    "allowImportingTsExtensions": true
-  },
-  "files": [],
-  "references": [
+  /* "references": [
     {
       "path": "./.nuxt/tsconfig.app.json"
     },
@@ -17,5 +13,16 @@
     {
       "path": "./.nuxt/tsconfig.node.json"
     }
-  ]
+  ], */
+  "extends": [
+    "./.nuxt/tsconfig.app.json",
+    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.shared.json",
+    "./.nuxt/tsconfig.node.json"
+  ],
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "module": "esnext"
+  }
 }
