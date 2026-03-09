@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { collectTree, type ScheduleNode } from "./schedule.ts";
+import { collectTree, type ScheduleDTO } from "./schedule.ts";
 
 /* function filterNodes(flatNodes, searchStr) {
   if (!searchStr) return flatNodes.map((_, i) => i);
@@ -39,7 +39,7 @@ console.assert(
 console.assert(!result.includes(3), "Phase B should be excluded"); */
 
 test("collecting schedule nodes into a tree", () => {
-  const data: ScheduleNode[] = [
+  const data: ScheduleDTO[] = [
     {
       level: 4,
       wbsCode: "6.4.1",
@@ -59,11 +59,15 @@ test("collecting schedule nodes into a tree", () => {
       end: "",
     },
   ];
-  const { roots, childrenMap } = collectTree(data);
+  const { roots, nodes } = collectTree(data);
   // Root should be index 0
   expect(roots.length).toBe(1);
   expect(roots[0]).toBe(0);
 
+  expect(nodes.length).toEqual(data.length);
+
   // WBS code "6.4.1" should have 1 child which has index 1 in the input array
-  expect(childrenMap.get("6.4.1")).toContain(1);
+  expect(nodes[0].wbsCode).toEqual("6.4.1");
+  expect(nodes[0].children).toContain(1);
+  expect(nodes[1].children).toHaveLength(0);
 });

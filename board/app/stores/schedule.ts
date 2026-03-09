@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
+import { ref, type Ref } from "vue";
 
-export interface ScheduleNode {
+export interface ScheduleDTO {
   id: number;
   level: number;
   wbsCode: string;
@@ -12,55 +13,82 @@ export interface ScheduleNode {
   end?: string;
 }
 
+export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {
+  start?: Date;
+  end?: Date;
+  children: number[];
+  open: Ref<boolean>;
+}
+
 export interface ScheduleTreeLike {
   /** indicies of root nodes */
   roots: number[];
-  /** map of WBS codes of nodes to indicies of their children */
-  childrenMap: Map<string, number[]>;
+  /** parse the object and add properties for rendering, MUST be the same size as input array */
+  nodes: ScheduleNode[];
+}
+
+function maybeParse(maybeDate?: string): Date | undefined {
+  return maybeDate ? new Date(maybeDate) : undefined;
 }
 
 /**
  * @param array MUST be sorted by WBS code
  */
-export function collectTree(array: ScheduleNode[]): ScheduleTreeLike {
+export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   const roots: number[] = [];
-  const childrenMap: Map<string, number[]> = new Map();
+
+  interface OpenNode {
+    index: number;
+    depth: number;
+  }
 
   /**
-   * a stack of the latest "open" nodes' wbs codes (split into arrays)
+   * a stack of the latest "open" nodes' indicies and their WBS depth in the input array
    * utilizing the guarantee that the `array` is given in a WBS sorted order
    */
-  const open: string[][] = [];
+  const open: OpenNode[] = [];
 
+  const nodes: ScheduleNode[] = new Array(array.length);
   for (let index = 0; index < array.length; index++) {
-    const node: ScheduleNode = array[index]!;
-    const wbs: string[] = node.wbsCode.split(".");
-    // 1. Clean up stack to find actual parent
-    while (open.length > 0 && open.at(-1)!.length >= wbs.length) {
-      open.pop();
+    const value = array[index];
+    const wbs: string[] = value.wbsCode.split(".");
+    // current depth
+    const depth: number = wbs.length;
+    // Clean up stack to find actual parent
+    while (open.length > 0 && open.at(-1)!.depth >= depth) {
+      void open.pop();
     }
 
     if (open.length === 0) {
       roots.push(index);
     } else {
-      const parent: string = open.at(-1)!.join(".");
-      if (!childrenMap.has(parent)) {
-        childrenMap.set(parent, []);
-      }
-      childrenMap.get(parent)!.push(index);
+      // utilizing the fact that input array is WBS sorted to backtrack to parent by index
+      const parent: ScheduleNode = nodes[open.at(-1)!.index];
+      parent.children.push(index);
     }
 
-    open.push(wbs);
+    open.push({
+      index,
+      depth,
+    } satisfies OpenNode);
+
+    nodes[index] = {
+      ...value,
+      start: maybeParse(value.start),
+      end: maybeParse(value.end),
+      open: ref(true),
+      children: [],
+    } satisfies ScheduleNode;
   }
 
   return {
     roots,
-    childrenMap,
+    nodes,
   };
 }
 
 export const useScheduleStore = defineStore("schedule-store", () => {
-  async function init(): Promise<ScheduleNode[]> {
+  async function init(): Promise<ScheduleDTO[]> {
     const query = `
       query {
         scheduleObjects {
@@ -81,7 +109,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
       ? `/graphql?${params}`
       : `http://localhost:5095/graphql?${params}`;
 
-    const response: { data: { scheduleObjects: ScheduleNode[] } } = await fetch(
+    const response: { data: { scheduleObjects: ScheduleDTO[] } } = await fetch(
       url,
     ).then((r) => r.json());
     return response.data.scheduleObjects;

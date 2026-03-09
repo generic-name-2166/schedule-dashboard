@@ -2,19 +2,20 @@
 import {
   collectTree,
   useScheduleStore,
-  type ScheduleNode,
+  type ScheduleDTO,
 } from "../stores/schedule.ts";
 import Sidebar from "./Sidebar.vue";
+import Timeline from "./Timeline.vue";
 
 const store = useScheduleStore();
 
-const nodes: ScheduleNode[] = await store.init();
-const { roots, childrenMap } = collectTree(nodes);
+const data: ScheduleDTO[] = await store.init();
+const { roots, nodes } = collectTree(data);
 </script>
 
 <template>
   <div class="gantt-chart">
-    <Sidebar :nodes="nodes" :roots="roots" :childrenMap="childrenMap" />
+    <Sidebar :nodes="nodes" :roots="roots" />
 
     <Timeline :nodes="nodes" />
   </div>

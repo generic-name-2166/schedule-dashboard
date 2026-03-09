@@ -1,32 +1,26 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import type { ScheduleNode } from "../stores/schedule.ts";
 
 const props = defineProps<{
   node: ScheduleNode;
   array: ScheduleNode[];
-  childrenMap: Map<string, number[]>;
 }>();
-
-const children = computed<ScheduleNode[]>(
-  () =>
-    props.childrenMap
-      .get(props.node.wbsCode)
-      ?.map((idx) => props.array[idx]!) ?? [],
-);
 </script>
 
 <template>
-  <details open class="details">
-    <summary :class="{ leaf: children.length === 0 }" class="summary">
+  <details v-model:open="props.node.open.value" class="details">
+    <summary
+      v-once
+      :class="{ leaf: props.node.children.length === 0 }"
+      class="summary"
+    >
       {{ props.node.name }}
     </summary>
     <div class="children">
       <SidebarStep
-        v-for="child of children"
-        :node="child"
+        v-for="idx of props.node.children"
+        :node="props.array[idx]"
         :array="props.array"
-        :childrenMap="props.childrenMap"
       />
     </div>
   </details>
