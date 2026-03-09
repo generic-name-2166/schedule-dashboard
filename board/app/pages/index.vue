@@ -1,27 +1,5 @@
 <script setup lang="ts">
 import Schedule from "../components/Schedule.vue";
-
-const query = `
-  query {
-    scheduleObjects {
-      id
-      level
-      wbsCode
-      code
-      name
-      start
-      end
-    }
-  }
-`;
-const params = new URLSearchParams({
-  query,
-});
-const url: string = window
-  ? `/graphql?${params}`
-  : `http://localhost:5095/graphql?${params}`;
-
-const response = await fetch(url).then((r) => r.json());
 </script>
 
 <template>
@@ -58,7 +36,7 @@ const response = await fetch(url).then((r) => r.json());
       </menu>
     </div>
   </div>
-  <Schedule :tasks="response.data.scheduleObjects" />
+  <Schedule />
 </template>
 
 <style lang="postcss" scoped>

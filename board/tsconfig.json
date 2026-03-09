@@ -15,14 +15,17 @@
     }
   ], */
   "extends": [
-    "./.nuxt/tsconfig.app.json",
-    "./.nuxt/tsconfig.server.json",
+    "./.nuxt/tsconfig.app.json"
+    /* "./.nuxt/tsconfig.server.json",
     "./.nuxt/tsconfig.shared.json",
-    "./.nuxt/tsconfig.node.json"
+    "./.nuxt/tsconfig.node.json" */
   ],
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "module": "esnext"
-  }
+    "module": "esnext",
+    "lib": ["DOM", "ESNext"],
+    "types": ["bun"]
+  },
+  "include": ["app"]
 }

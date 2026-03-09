@@ -1,25 +1,35 @@
 <script setup lang="ts">
 import type { ScheduleNode } from "../stores/schedule.ts";
+import SidebarStep from "./SidebarStep.vue";
+
+const model = defineModel<ScheduleNode>({
+  required: true,
+});
 
 const props = defineProps<{
-  node: ScheduleNode;
   array: ScheduleNode[];
 }>();
+
+const toggle = (event: Event): void => {
+  const el = event.target as HTMLDetailsElement;
+  model.value.open.value = el.open;
+};
 </script>
 
 <template>
-  <details v-model:open="props.node.open.value" class="details">
+  <details :open="model.open.value" class="details" @toggle="toggle">
     <summary
       v-once
-      :class="{ leaf: props.node.children.length === 0 }"
+      :class="{ leaf: model.children.length === 0 }"
       class="summary"
     >
-      {{ props.node.name }}
+      {{ model.name }}
     </summary>
     <div class="children">
       <SidebarStep
-        v-for="idx of props.node.children"
-        :node="props.array[idx]"
+        v-for="idx of model.children"
+        :key="props.array[idx]!.id"
+        v-model="props.array[idx]!"
         :array="props.array"
       />
     </div>

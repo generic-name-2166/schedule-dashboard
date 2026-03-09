@@ -48,9 +48,9 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
    */
   const open: OpenNode[] = [];
 
-  const nodes: ScheduleNode[] = new Array(array.length);
+  const nodes: ScheduleNode[] = new Array<ScheduleNode>(array.length);
   for (let index = 0; index < array.length; index++) {
-    const value = array[index];
+    const value = array[index]!;
     const wbs: string[] = value.wbsCode.split(".");
     // current depth
     const depth: number = wbs.length;
@@ -63,7 +63,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       roots.push(index);
     } else {
       // utilizing the fact that input array is WBS sorted to backtrack to parent by index
-      const parent: ScheduleNode = nodes[open.at(-1)!.index];
+      const parent: ScheduleNode = nodes[open.at(-1)!.index]!;
       parent.children.push(index);
     }
 
@@ -105,10 +105,13 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     const params = new URLSearchParams({
       query,
     });
+    // TODO: move this to env var
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const url: string = window
       ? `/graphql?${params}`
       : `http://localhost:5095/graphql?${params}`;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const response: { data: { scheduleObjects: ScheduleDTO[] } } = await fetch(
       url,
     ).then((r) => r.json());

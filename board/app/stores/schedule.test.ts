@@ -67,7 +67,7 @@ test("collecting schedule nodes into a tree", () => {
   expect(nodes.length).toEqual(data.length);
 
   // WBS code "6.4.1" should have 1 child which has index 1 in the input array
-  expect(nodes[0].wbsCode).toEqual("6.4.1");
-  expect(nodes[0].children).toContain(1);
-  expect(nodes[1].children).toHaveLength(0);
+  expect(nodes[0]?.wbsCode).toEqual("6.4.1");
+  expect(nodes[0]?.children).toContain(1);
+  expect(nodes[1]?.children).toHaveLength(0);
 });

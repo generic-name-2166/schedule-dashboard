@@ -30,7 +30,7 @@ function calculateWidth(start?: Date, end?: Date): string {
 <template>
   <div class="timeline">
     <ul class="nodes">
-      <li v-for="node of props.nodes">
+      <li v-for="node of props.nodes" :key="node.id">
         <div
           style="position: absolute; outline: 2px solid red; height: stretch"
           :style="{

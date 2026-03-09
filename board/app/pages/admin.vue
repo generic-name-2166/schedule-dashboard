@@ -34,6 +34,7 @@ async function submit(event: SubmitEvent): Promise<void> {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await res.json();
   console.log(result);
 }

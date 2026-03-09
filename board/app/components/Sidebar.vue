@@ -12,6 +12,11 @@ const top: ScheduleNode[] = props.roots.map((idx) => props.nodes[idx]!);
 
 <template>
   <div>
-    <SidebarStep v-for="node of top" :node="node" :array="props.nodes" />
+    <SidebarStep
+      v-for="(node, idx) of top"
+      :key="node.id"
+      v-model="props.nodes[idx]!"
+      :array="props.nodes"
+    />
   </div>
 </template>
