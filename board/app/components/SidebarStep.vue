@@ -23,7 +23,9 @@ const toggle = (event: Event): void => {
       :class="{ leaf: model.children.length === 0 }"
       class="summary"
     >
-      {{ model.name }}
+      <span>
+        {{ model.name }}
+      </span>
     </summary>
     <div class="children">
       <SidebarStep
@@ -38,48 +40,43 @@ const toggle = (event: Event): void => {
 
 <style scoped>
 .details {
-  border-left: 2px solid #e0e0e0;
-  padding-left: 12px;
+  width: stretch;
+}
 
-  /* Remove left border for leaf nodes */
-  &:not(:has(.details)) {
-    border-left: none;
-
-    &::before {
-      display: none;
-    }
-  }
+.children {
+  padding-left: 1rem;
+  border-left: 0.125rem solid var(--secondary-color);
 }
 
 .summary {
   list-style-type: none;
-  position: relative;
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.2s ease;
+  font-weight: bold;
+  display: block;
+  white-space: nowrap;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  position: relative;
 
-  height: 60px;
+  height: 40px;
 
-  &::before {
-    content: "";
+  /* can't use flex because it breaks text-overflow, margin: auto and vertical-align aren't working */
+  > span {
     position: absolute;
-    left: -10px;
     top: 50%;
-    width: 10px;
-    height: 2px;
-    background-color: #e0e0e0;
-  }
-
-  &:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
   }
 
   &.leaf {
     list-style: none;
-    border-left: 3px solid #28a745;
-    background: #f1f8f1;
-    border-color: #c3e6cb;
+    pointer-events: none;
   }
 }
 </style>

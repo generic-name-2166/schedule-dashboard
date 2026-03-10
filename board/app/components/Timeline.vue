@@ -46,6 +46,7 @@ function calculateWidth(start?: Date, end?: Date): string {
 <style lang="css" scoped>
 .timeline {
   overflow-x: scroll;
+  grid-row: span 2;
 }
 
 .nodes {
@@ -58,7 +59,7 @@ function calculateWidth(start?: Date, end?: Date): string {
 
   > li {
     display: block;
-    height: 60px;
+    height: 40px;
     position: relative;
   }
 }

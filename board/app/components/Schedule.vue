@@ -16,7 +16,6 @@ const { roots, nodes } = collectTree(data);
 <template>
   <div class="gantt-chart">
     <Sidebar :nodes="nodes" :roots="roots" />
-
     <Timeline :nodes="nodes" />
   </div>
 </template>
@@ -24,7 +23,7 @@ const { roots, nodes } = collectTree(data);
 <style scoped>
 .gantt-chart {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: minmax(0, 1fr) 3fr;
   gap: 1rem;
 }
 </style>
