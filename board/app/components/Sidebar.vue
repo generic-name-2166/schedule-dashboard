@@ -6,15 +6,13 @@ const props = defineProps<{
   nodes: ScheduleNode[];
   roots: number[];
 }>();
-
-const top: ScheduleNode[] = props.roots.map((idx) => props.nodes[idx]!);
 </script>
 
 <template>
   <div class="sidebar">
     <SidebarStep
-      v-for="(node, idx) of top"
-      :key="node.id"
+      v-for="idx of props.roots"
+      :key="props.nodes[idx]!.id"
       v-model="props.nodes[idx]!"
       :array="props.nodes"
     />
