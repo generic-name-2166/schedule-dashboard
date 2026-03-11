@@ -32,7 +32,9 @@ function calculateWidth(start?: Date, end?: Date): string {
 const nodes = computed<ScheduleNode[]>(() =>
   props.nodes.filter(
     (node): boolean =>
-      !store.closed.some((wbs) => node.wbsCode.startsWith(wbs)),
+      !store.closed
+        .keys()
+        .some((wbs) => node.wbsCode.startsWith(wbs) && node.wbsCode !== wbs),
   ),
 );
 </script>

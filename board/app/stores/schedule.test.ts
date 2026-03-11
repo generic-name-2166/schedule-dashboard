@@ -58,11 +58,21 @@ test("collecting schedule nodes into a tree", () => {
       start: "",
       end: "",
     },
+    {
+      level: 4,
+      wbsCode: "6.4.2",
+      name: "Root 2",
+      id: 0,
+      code: "",
+      start: "",
+      end: "",
+    },
   ];
   const { roots, nodes } = collectTree(data);
   // Root should be index 0
-  expect(roots.length).toBe(1);
+  expect(roots.length).toBe(2);
   expect(roots[0]).toBe(0);
+  expect(roots[1]).toBe(2);
 
   expect(nodes.length).toEqual(data.length);
 
@@ -70,4 +80,6 @@ test("collecting schedule nodes into a tree", () => {
   expect(nodes[0]?.wbsCode).toEqual("6.4.1");
   expect(nodes[0]?.children).toContain(1);
   expect(nodes[1]?.children).toHaveLength(0);
+  expect(nodes[2]?.wbsCode).toEqual("6.4.2");
+  expect(nodes[2]?.children).toHaveLength(0);
 });

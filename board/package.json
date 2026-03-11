@@ -8,8 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "format": "prettier -w .",
-    "lint": "eslint ."
+    "check": "prettier -w . && eslint ."
   },
   "dependencies": {
     "@pinia/nuxt": "0.11.3",

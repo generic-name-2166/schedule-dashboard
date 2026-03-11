@@ -15,10 +15,9 @@ const props = defineProps<{
 const toggle = (event: Event): void => {
   const el = event.target as HTMLDetailsElement;
   if (el.open) {
-    const index: number = store.closed.indexOf(model.value.wbsCode);
-    store.closed.splice(index, 1);
+    store.closed.delete(model.value.wbsCode);
   } else {
-    store.closed.push(model.value.wbsCode);
+    store.closed.add(model.value.wbsCode);
   }
 };
 </script>

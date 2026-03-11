@@ -89,7 +89,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
 
 export const useScheduleStore = defineStore("schedule-store", () => {
   /** WBS codes of closed nodes */
-  const closed = reactive<string[]>([]);
+  const closed = reactive<Set<string>>(new Set<string>());
 
   async function init(): Promise<ScheduleDTO[]> {
     const query = `
