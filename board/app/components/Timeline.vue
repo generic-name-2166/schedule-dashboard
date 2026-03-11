@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { ScheduleNode } from "../stores/schedule.ts";
+import { computed } from "vue";
+import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
 
 const TIMELINE_START: Date = new Date("2025-01-01");
 const TIMELINE_END: Date = new Date("2030-01-01");
 const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
+
+const store = useScheduleStore();
 
 const props = defineProps<{
   nodes: ScheduleNode[];
@@ -25,12 +28,19 @@ function calculateWidth(start?: Date, end?: Date): string {
   const duration: number = end.valueOf() - start.valueOf();
   return ((duration / TOTAL_DURATION) * 100).toFixed(2) + "%";
 }
+
+const nodes = computed<ScheduleNode[]>(() =>
+  props.nodes.filter(
+    (node): boolean =>
+      !store.closed.some((wbs) => node.wbsCode.startsWith(wbs)),
+  ),
+);
 </script>
 
 <template>
   <div class="timeline">
     <ul class="nodes">
-      <li v-for="node of props.nodes" :key="node.id">
+      <li v-for="node of nodes" :key="node.id">
         <div
           style="position: absolute; outline: 2px solid red; height: stretch"
           :style="{

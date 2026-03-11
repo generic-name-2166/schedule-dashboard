@@ -17,7 +17,7 @@
   --secondary-color: rgba(238, 238, 238, 0.5);
   --primary-background: #1e2025;
   --secondary-background: #111214;
-  --highlight-color: #D2F1E4;
+  --highlight-color: #d2f1e4;
 }
 
 body {

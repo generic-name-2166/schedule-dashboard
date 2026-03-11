@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, type Ref } from "vue";
+import { reactive, ref, type Ref } from "vue";
 
 export interface ScheduleDTO {
   id: number;
@@ -88,6 +88,9 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
 }
 
 export const useScheduleStore = defineStore("schedule-store", () => {
+  /** WBS codes of closed nodes */
+  const closed = reactive<string[]>([]);
+
   async function init(): Promise<ScheduleDTO[]> {
     const query = `
       query {
@@ -119,6 +122,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
   }
 
   return {
+    closed,
     init,
   };
 });

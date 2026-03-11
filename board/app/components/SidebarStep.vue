@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { ScheduleNode } from "../stores/schedule.ts";
+import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
+
+const store = useScheduleStore();
 
 const model = defineModel<ScheduleNode>({
   required: true,
@@ -12,7 +14,12 @@ const props = defineProps<{
 
 const toggle = (event: Event): void => {
   const el = event.target as HTMLDetailsElement;
-  model.value.open.value = el.open;
+  if (el.open) {
+    const index: number = store.closed.indexOf(model.value.wbsCode);
+    store.closed.splice(index, 1);
+  } else {
+    store.closed.push(model.value.wbsCode);
+  }
 };
 </script>
 
