@@ -57,7 +57,6 @@ const toggle = (event: Event): void => {
 .summary {
   list-style-type: none;
   cursor: pointer;
-  border-radius: 4px;
   transition: all 0.2s ease;
   font-weight: bold;
   display: block;
@@ -65,6 +64,9 @@ const toggle = (event: Event): void => {
   overflow-x: hidden;
   text-overflow: ellipsis;
   position: relative;
+  border-bottom: 0.125rem solid var(--secondary-color);
+  box-sizing: border-box;
+  height: 40px;
 
   height: 40px;
 

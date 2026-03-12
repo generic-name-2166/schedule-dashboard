@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
 
-const TIMELINE_START: Date = new Date("2025-01-01");
-const TIMELINE_END: Date = new Date("2030-01-01");
+const TIMELINE_START: Date = new Date("2021-01-01");
+const TIMELINE_END: Date = new Date("2029-01-01");
 const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
 
@@ -44,7 +44,7 @@ const nodes = computed<ScheduleNode[]>(() =>
     <ul class="nodes">
       <li v-for="node of nodes" :key="node.id">
         <div
-          style="position: absolute; outline: 2px solid red; height: stretch"
+          class="bar"
           :style="{
             left: calculateOffset(node.start),
             width: calculateWidth(node.start, node.end),
@@ -59,6 +59,9 @@ const nodes = computed<ScheduleNode[]>(() =>
 .timeline {
   overflow-x: scroll;
   grid-row: span 2;
+  background-color: var(--secondary-background);
+  border-radius: 1rem;
+  padding-inline: 0.5rem;
 }
 
 .nodes {
@@ -71,8 +74,18 @@ const nodes = computed<ScheduleNode[]>(() =>
 
   > li {
     display: block;
-    height: 40px;
     position: relative;
+    height: 40px;
+    box-sizing: border-box;
+    border-bottom: 0.125rem solid var(--secondary-color);
   }
+}
+
+.bar {
+  height: 60%;
+  position: absolute;
+  top: 20%;
+  background-color: var(--highlight-color);
+  border-radius: 0.5rem;
 }
 </style>
