@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using Server.Common;
 
 namespace Server.Types;
 
@@ -15,20 +16,9 @@ public static class Query
     {
         try
         {
-            SqliteConnection db = new("Filename=./db.sqlite");
+            SqliteConnection db = new(DbCommon.CONNECTION_STRING);
             db.Open();
-            string stmt = """
-                CREATE TABLE IF NOT EXISTS schedule (
-                    id INTEGER PRIMARY KEY, 
-                    level INTEGER NOT NULL, 
-                    wbs_code TEXT NOT NULL, 
-                    code TEXT NOT NULL, 
-                    name TEXT NOT NULL, 
-                    start INTEGER, 
-                    end INTEGER 
-                ) STRICT
-                """;
-            SqliteCommand command = new(stmt, db);
+            SqliteCommand command = new(DbCommon.INIT_STMT, db);
             command.ExecuteNonQuery();
             return db;
         }
@@ -39,10 +29,7 @@ public static class Query
         }
     }
 
-    private static DateTime ConvertSecondsToDateTime(int seconds) =>
-        DateTime.UnixEpoch.AddSeconds(seconds);
-
-    public static List<ScheduleObject> GetScheduleObjects()
+    public static List<ScheduleObject> GetScheduleObjects(DateTime date)
     {
         using SqliteConnection db = InitializeDatabase();
         List<ScheduleObject> objects = [];
@@ -56,8 +43,10 @@ public static class Query
                 start,
                 end
             FROM schedule
+            WHERE date_s = @DateSeconds
             """;
         SqliteCommand selectCommand = new(stmt, db);
+        selectCommand.Parameters.AddWithValue("@DateSeconds", DateCommon.DateToSeconds(date));
 
         try
         {
@@ -67,10 +56,10 @@ public static class Query
             {
                 DateTime? start = query.IsDBNull(5)
                     ? null
-                    : ConvertSecondsToDateTime(query.GetInt32(5));
+                    : DateCommon.SecondsToDate(query.GetInt32(5));
                 DateTime? end = query.IsDBNull(6)
                     ? null
-                    : ConvertSecondsToDateTime(query.GetInt32(6));
+                    : DateCommon.SecondsToDate(query.GetInt32(6));
                 ScheduleObject node = new(
                     query.GetInt32(0),
                     query.GetInt32(1),
@@ -89,5 +78,23 @@ public static class Query
             Console.WriteLine($"Querying error: {ex.GetType()} {ex.Message}");
             throw;
         }
+    }
+
+    public static List<DateTime> GetAvailableDates()
+    {
+        using SqliteConnection db = InitializeDatabase();
+        List<DateTime> dates = [];
+        string stmt = """
+            SELECT DISTINCT date_s FROM schedule
+        """;
+        SqliteCommand selectCommand = new(stmt, db);
+
+        SqliteDataReader query = selectCommand.ExecuteReader();
+        while (query.Read())
+        {
+            DateTime date = DateCommon.SecondsToDate(query.GetInt64(0));
+            dates.Add(date);
+        }
+        return dates;
     }
 }

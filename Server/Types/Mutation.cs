@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Data.Sqlite;
 using nietras.SeparatedValues;
+using Server.Common;
 
 namespace Server.Types;
 
@@ -16,20 +17,9 @@ public static class Mutation
     {
         try
         {
-            SqliteConnection db = new("Filename=./db.sqlite");
+            SqliteConnection db = new(DbCommon.CONNECTION_STRING);
             db.Open();
-            string query = """
-                CREATE TABLE IF NOT EXISTS schedule (
-                    id INTEGER PRIMARY KEY, 
-                    level INTEGER NOT NULL, 
-                    wbs_code TEXT NOT NULL, 
-                    code TEXT NOT NULL, 
-                    name TEXT NOT NULL, 
-                    start INTEGER, 
-                    end INTEGER 
-                ) STRICT
-                """;
-            SqliteCommand command = new(query, db);
+            SqliteCommand command = new(DbCommon.INIT_STMT, db);
             command.ExecuteNonQuery();
             return db;
         }
@@ -45,7 +35,7 @@ public static class Mutation
     /// </summary>
     /// <param name="maybeDate"></param>
     /// <returns>Number of seconds since unix epoch or null if the string is empty</returns>
-    private static int? ParseDate(ReadOnlySpan<char> maybeDate)
+    private static long? ParseDate(ReadOnlySpan<char> maybeDate)
     {
         if (maybeDate.IsEmpty)
             return null;
@@ -55,21 +45,23 @@ public static class Mutation
             CultureInfo.InvariantCulture,
             DateTimeStyles.None
         );
-        TimeSpan diff = date.ToUniversalTime() - DateTime.UnixEpoch;
-        return (int)Math.Floor(diff.TotalSeconds);
+        return DateCommon.DateToSeconds(date);
     }
 
-    public static async Task<bool> UploadFileAsync(IFile file)
+    public static async Task<bool> UploadFileAsync(DateTime date, IFile file)
     {
-        var fileName = file.Name;
-        var fileSize = file.Length;
+        string fileName = file.Name;
+        long? fileSize = file.Length;
 
         Console.WriteLine($"{fileName} {fileSize}");
+
+        long dateSeconds = DateCommon.DateToSeconds(date);
 
         using SqliteConnection db = InitializeDatabase();
         using SqliteTransaction tx = db.BeginTransaction();
         string query = """
             INSERT INTO schedule VALUES (
+                @DateSeconds, 
                 @Id, 
                 @Level, 
                 @WbsCode, 
@@ -93,10 +85,11 @@ public static class Mutation
                 ReadOnlySpan<char> wbsCode = row["Код WBS"].Span;
                 ReadOnlySpan<char> code = row["Код"].Span;
                 ReadOnlySpan<char> name = row["Название"].Span;
-                int? startSeconds = ParseDate(row["Начало"].Span);
-                int? endSeconds = ParseDate(row["Окончание"].Span);
+                long? startSeconds = ParseDate(row["Начало"].Span);
+                long? endSeconds = ParseDate(row["Окончание"].Span);
 
                 SqliteCommand insertCommand = new(query, db, tx);
+                insertCommand.Parameters.AddWithValue("@DateSeconds", dateSeconds);
                 insertCommand.Parameters.AddWithValue("@Id", id);
                 insertCommand.Parameters.AddWithValue("@Level", level);
                 insertCommand.Parameters.AddWithValue("@WbsCode", wbsCode.ToString());
