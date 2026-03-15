@@ -2,6 +2,7 @@
 import { RouterLink } from "vue-router";
 import Schedule from "../components/Schedule.vue";
 import { useId } from "vue";
+import DataDate from "~/components/DataDate.vue";
 
 const menuId: string = useId();
 </script>
@@ -10,10 +11,7 @@ const menuId: string = useId();
   <div class="heading">
     <h1>График строительства</h1>
     <div class="date">
-      <p>
-        Данные предоставлены на
-        <time datetime="2026-02-25T00:00:00Z">2026-02-25T00:00:00Z</time>
-      </p>
+      <DataDate />
       <button
         type="button"
         class="kebab"
@@ -65,11 +63,6 @@ const menuId: string = useId();
 
 .date {
   display: flex;
-
-  > p {
-    margin: auto;
-    font-weight: bold;
-  }
 }
 
 .kebab {

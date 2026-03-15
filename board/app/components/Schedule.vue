@@ -14,10 +14,11 @@ const { roots, nodes } = collectTree(data);
 </script>
 
 <template>
-  <div class="gantt-chart">
+  <div v-if="store.currentDate" class="gantt-chart">
     <Sidebar :nodes="nodes" :roots="roots" />
     <Timeline :nodes="nodes" />
   </div>
+  <p v-else>Данные не предоставлены</p>
 </template>
 
 <style scoped>

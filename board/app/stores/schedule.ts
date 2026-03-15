@@ -87,14 +87,43 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   };
 }
 
+async function getAvailableDates(): Promise<Date[]> {
+  const query = `
+    query {
+      availableDates
+    }
+  `;
+  const params = new URLSearchParams({
+    query,
+  });
+  // TODO: move this to env var
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const url: string = window
+    ? `/graphql?${params}`
+    : `http://localhost:5095/graphql?${params}`;
+  
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const response: { data: { availableDates: string[] } } = await fetch(url).then(r => r.json());
+  console.log(response);
+  return response.data.availableDates.map((date) => new Date(date));
+}
+
 export const useScheduleStore = defineStore("schedule-store", () => {
   /** WBS codes of closed nodes */
   const closed = reactive<Set<string>>(new Set<string>());
+  const dates = ref<Date[]>([]);
+  const currentDate = ref<Date>();
 
   async function init(): Promise<ScheduleDTO[]> {
+    dates.value = await getAvailableDates();
+    currentDate.value = dates.value.at(-1);
+    if (!currentDate.value) {
+      return [];
+    }
+
     const query = `
       query {
-        scheduleObjects {
+        scheduleObjects(date: $date) {
           id
           level
           wbsCode
@@ -105,8 +134,10 @@ export const useScheduleStore = defineStore("schedule-store", () => {
         }
       }
     `;
+    const variables = `{ date: ${currentDate.value.toISOString()} }`;
     const params = new URLSearchParams({
       query,
+      variables,
     });
     // TODO: move this to env var
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -122,6 +153,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
   }
 
   return {
+    currentDate,
     closed,
     init,
   };
