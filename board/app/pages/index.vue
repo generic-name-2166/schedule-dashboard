@@ -32,24 +32,26 @@ const menuId: string = useId();
           <circle cx="12" cy="17" r="1.5" fill="#FFF" />
         </svg>
       </button>
-      <menu
+      <div
         :id="menuId"
         popover
-        class="menu"
+        class="popover"
         :style="{
           positionAnchor: `--${menuId}`,
         }"
       >
-        <li>
-          <RouterLink to="admin" class="link">Создать</RouterLink>
-        </li>
-        <li>
-          <RouterLink to="admin?edit=" class="link">Редактировать</RouterLink>
-        </li>
-        <li>
-          <button type="button" class="link">Удалить</button>
-        </li>
-      </menu>
+        <menu class="menu">
+          <li>
+            <RouterLink to="admin" class="link">Создать</RouterLink>
+          </li>
+          <li>
+            <RouterLink to="admin?edit=" class="link">Редактировать</RouterLink>
+          </li>
+          <li>
+            <button type="button" class="link">Удалить</button>
+          </li>
+        </menu>
+      </div>
     </div>
   </div>
   <Schedule />
@@ -73,34 +75,47 @@ const menuId: string = useId();
   cursor: pointer;
 }
 
-.menu {
-  list-style-type: none;
+.popover {
   inset: auto;
   position: absolute;
   position-area: bottom left;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+
+.menu {
+  list-style-type: none;
   font-weight: bold;
   color: var(--primary-color);
-  background-color: var(--secondary-background);
+  background-color: var(--primary-background);
   margin: 0;
   padding: 0.5rem 0;
   border: 0;
   border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
 
   > li {
-    padding: 0.5rem 1rem;
+    display: block;
     margin: 0;
+    padding: 0;
+    width: stretch;
+    height: stretch;
 
     &:not(:last-child) {
       border-bottom: 1px solid var(--secondary-color);
     }
 
     > .link {
+      display: block;
       text-decoration: none;
       color: inherit;
       background-color: inherit;
       border: 0;
       margin: 0;
-      padding: 0;
+      padding: 0.5rem 1rem;
       font-size: inherit;
       font-weight: inherit;
 

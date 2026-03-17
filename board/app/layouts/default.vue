@@ -10,9 +10,15 @@
 .wrapper {
   display: flex;
   justify-content: center;
+  width: stretch;
 }
 
 .content {
-  max-width: max(80%, 1200px);
+  padding-inline: 0.5rem;
+  width: max(80%, 1200px);
+
+  @media screen and (max-width: 1200px) {
+    width: stretch;
+  }
 }
 </style>

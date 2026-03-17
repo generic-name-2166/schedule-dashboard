@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useScheduleStore } from '~/stores/schedule';
+import { useScheduleStore } from "~/stores/schedule";
 
 const store = useScheduleStore();
 </script>

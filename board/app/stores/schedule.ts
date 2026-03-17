@@ -101,9 +101,11 @@ async function getAvailableDates(): Promise<Date[]> {
   const url: string = window
     ? `/graphql?${params}`
     : `http://localhost:5095/graphql?${params}`;
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const response: { data: { availableDates: string[] } } = await fetch(url).then(r => r.json());
+  const response: { data: { availableDates: string[] } } = await fetch(
+    url,
+  ).then((r) => r.json());
   console.log(response);
   return response.data.availableDates.map((date) => new Date(date));
 }
@@ -122,7 +124,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     }
 
     const query = `
-      query {
+      query ScheduleObjects($date: DateTime!) {
         scheduleObjects(date: $date) {
           id
           level
@@ -134,7 +136,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
         }
       }
     `;
-    const variables = `{ date: ${currentDate.value.toISOString()} }`;
+    const variables = `{ "date": "${currentDate.value.toISOString()}" }`;
     const params = new URLSearchParams({
       query,
       variables,
