@@ -17,6 +17,7 @@
   --secondary-color: rgba(238, 238, 238, 0.5);
   --primary-background: #1e2025;
   --secondary-background: #111214;
+  --tertiary-background: #0a0b0d;
   --highlight-color: #d2f1e4;
 }
 
