@@ -154,9 +154,44 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     return response.data.scheduleObjects;
   }
 
+  async function upload(file: File, date: Date): Promise<void> {
+    const operations: string = JSON.stringify({
+      query: `
+      mutation UploadFile($date: DateTime!, $file: Upload!) {
+        uploadFile(date: $date, file: $file)
+      }
+    `,
+      variables: { date, file: null },
+    });
+
+    const map: string = JSON.stringify({
+      "0": ["variables.file"],
+    });
+
+    const formData = new FormData();
+    formData.append("operations", operations);
+    formData.append("map", map);
+    formData.append("0", file);
+
+    const res = await fetch("/graphql", {
+      method: "POST",
+      // Do NOT set Content-Type; let the browser set multipart
+      body: formData,
+      // https://stackoverflow.com/a/76686111
+      headers: {
+        "GraphQL-preflight": "1",
+      },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const result = await res.json();
+    console.log(result);
+  }
+
   return {
     currentDate,
     closed,
     init,
+    upload,
   };
 });

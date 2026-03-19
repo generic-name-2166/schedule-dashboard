@@ -41,5 +41,9 @@ const props = defineProps<{
   &:visited {
     color: inherit;
   }
+
+  &:hover {
+    background-color: var(--primary-background);
+  }
 }
 </style>

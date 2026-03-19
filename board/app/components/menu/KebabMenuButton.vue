@@ -1,12 +1,25 @@
 <script setup lang="ts">
+import type { ButtonHTMLAttributes } from "vue";
+
+const props = withDefaults(
+  defineProps<{
+    type?: ButtonHTMLAttributes["type"];
+  }>(),
+  { type: "button" },
+);
+
 const emit = defineEmits<{
-  click: [event: MouseEvent],
+  click: [event: MouseEvent];
 }>();
 </script>
 
 <template>
   <li class="container">
-    <button type="button" class="button" @click="(event) => emit('click', event)">
+    <button
+      :type="props.type"
+      class="button"
+      @click="(event) => emit('click', event)"
+    >
       <slot />
     </button>
   </li>
@@ -33,11 +46,14 @@ const emit = defineEmits<{
   border: 0;
   margin: 0;
   padding: 0.5rem 1rem;
+  text-align: start;
+  width: stretch;
+  height: stretch;
   font-size: inherit;
   font-weight: inherit;
 
-  &:visited {
-    color: inherit;
+  &:hover {
+    background-color: var(--primary-background);
   }
 }
 </style>

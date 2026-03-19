@@ -15,7 +15,7 @@ const store = useScheduleStore();
 
 <style lang="css" scoped>
 .data-date {
-  margin: auto;
+  margin: 0;
   font-weight: bold;
 }
 </style>

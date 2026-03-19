@@ -42,10 +42,17 @@ const menuId = useId();
 <style lang="css" scoped>
 .kebab {
   border: 0;
+  border-radius: 50%;
   margin: 0;
   padding: 0;
   background-color: transparent;
   cursor: pointer;
+  aspect-ratio: 1 / 1;
+
+  &:hover {
+    background-color: var(--primary-background);
+    filter: brightness(150%);
+  }
 }
 
 .popover {
@@ -56,6 +63,7 @@ const menuId = useId();
   padding: 0;
   margin: 0;
   border: 0;
+  border-radius: 1rem;
   background: transparent;
 }
 
@@ -65,9 +73,8 @@ const menuId = useId();
   color: var(--primary-color);
   background-color: var(--tertiary-background);
   margin: 0;
-  padding: 0.5rem 0;
+  padding: 0;
   border: 0;
-  border-radius: 1rem;
   display: flex;
   flex-direction: column;
 }

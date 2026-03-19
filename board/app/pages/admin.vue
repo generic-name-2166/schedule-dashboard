@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from "vue";
+import KebabMenu from "~/components/menu/KebabMenu.vue";
+import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
+import { useScheduleStore } from "~/stores/schedule";
 
+const store = useScheduleStore();
 const isDragover = ref(false);
 const fileName = ref("");
 const target = useTemplateRef<HTMLInputElement>("target");
@@ -13,37 +17,7 @@ async function submit(event: SubmitEvent): Promise<void> {
   const file = inputs.get("file") as File;
   const date = new Date(inputs.get("date") as string);
 
-  const operations: string = JSON.stringify({
-    query: `
-      mutation UploadFile($date: DateTime!, $file: Upload!) {
-        uploadFile(date: $date, file: $file)
-      }
-    `,
-    variables: { date, file: null },
-  });
-
-  const map: string = JSON.stringify({
-    "0": ["variables.file"],
-  });
-
-  const formData = new FormData();
-  formData.append("operations", operations);
-  formData.append("map", map);
-  formData.append("0", file);
-
-  const res = await fetch(form.action, {
-    method: form.method,
-    // Do NOT set Content-Type; let the browser set multipart
-    body: formData,
-    // https://stackoverflow.com/a/76686111
-    headers: {
-      "GraphQL-preflight": "1",
-    },
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const result = await res.json();
-  console.log(result);
+  await store.upload(file, date);
 }
 
 // https://css-tricks.com/drag-and-drop-file-uploading/
@@ -96,7 +70,9 @@ const input = (): void => {
 
       <div>
         <label class="date"><input type="date" name="date" required /></label>
-        <button type="submit">submit</button>
+        <KebabMenu>
+          <KebabMenuButton type="submit">Сохранить</KebabMenuButton>
+        </KebabMenu>
       </div>
     </div>
 
@@ -152,6 +128,12 @@ const input = (): void => {
 .heading {
   display: flex;
   justify-content: space-between;
+
+  > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 }
 
 .date {

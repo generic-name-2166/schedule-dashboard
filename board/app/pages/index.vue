@@ -9,7 +9,7 @@ import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
 <template>
   <div class="heading">
     <h1>График строительства</h1>
-    <div class="date">
+    <div>
       <DataDate />
       <KebabMenu>
         <KebabMenuLink to="admin">Создать</KebabMenuLink>
@@ -25,10 +25,12 @@ import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
 .heading {
   display: flex;
   justify-content: space-between;
-}
 
-.date {
-  display: flex;
+  > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 }
 
 .kebab {
@@ -43,7 +45,7 @@ import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
   inset: auto;
   position: absolute;
   position-area: bottom left;
-  transform: translate(1rem, -2rem);
+  transform: translate(0, -1rem);
   padding: 0;
   margin: 0;
   border: 0;
