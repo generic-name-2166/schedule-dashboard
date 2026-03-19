@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef, onMounted } from "vue";
 import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
 
 const TIMELINE_START: Date = new Date("2021-01-01");
@@ -8,6 +8,7 @@ const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
 
 const store = useScheduleStore();
+const timeline = useTemplateRef<HTMLDivElement>("timeline");
 
 const props = defineProps<{
   nodes: ScheduleNode[];
@@ -72,20 +73,46 @@ const markers = computed<{
   }
 
   return {
-    major, minor,
+    major,
+    minor,
   };
+});
+
+onMounted(() => {
+  if (!timeline.value) return;
+
+  const todayOffset: number =
+    (new Date().valueOf() - TIMELINE_START.valueOf()) / TOTAL_DURATION;
+  const timelineWidth = 2000;
+  const margin = 200;
+
+  const scrollPosition = todayOffset * timelineWidth - margin;
+  timeline.value.scrollLeft = Math.max(0, scrollPosition);
 });
 </script>
 
 <template>
-  <div class="timeline">
+  <div ref="timeline" class="timeline">
+    <div
+      class="today-line"
+      :style="{ left: calculateOffset(new Date()) }"
+    ></div>
     <div class="timeline-header">
-      <div class="today-line" :style="{ left: calculateOffset(new Date()) }"></div>
-      <div v-for="year of markers.major" :key="year.offset" class="marker-year" :style="{ left: year.offset }">
+      <div
+        v-for="year of markers.major"
+        :key="year.offset"
+        class="marker-year"
+        :style="{ left: year.offset }"
+      >
         <span>{{ year.year }}</span>
         <div class="marker-line"></div>
       </div>
-      <div v-for="month of markers.minor" :key="month" class="marker-month" :style="{ left: month }">
+      <div
+        v-for="month of markers.minor"
+        :key="month"
+        class="marker-month"
+        :style="{ left: month }"
+      >
         <div class="marker-line"></div>
       </div>
     </div>
@@ -111,6 +138,16 @@ const markers = computed<{
   background-color: var(--secondary-background);
   border-radius: 1rem;
   padding-inline: 0.5rem;
+  position: relative;
+
+  > .today-line {
+    width: 2px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    background-color: var(--secondary-color);
+  }
 }
 
 .timeline-header {
@@ -118,13 +155,6 @@ const markers = computed<{
   width: 2000px;
   border-bottom: 0.125rem solid var(--primary-color);
   position: relative;
-
-  > .today-line {
-    width: 2px;
-    position: absolute;
-    height: 10000px;
-    background-color: var(--secondary-color);
-  }
 }
 
 .marker-year {
