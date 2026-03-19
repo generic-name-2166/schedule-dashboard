@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
 import Schedule from "../components/Schedule.vue";
-import { useId } from "vue";
 import DataDate from "~/components/DataDate.vue";
-
-const menuId: string = useId();
+import KebabMenu from "~/components/menu/KebabMenu.vue";
+import KebabMenuLink from "~/components/menu/KebabMenuLink.vue";
+import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
 </script>
 
 <template>
@@ -12,46 +11,11 @@ const menuId: string = useId();
     <h1>График строительства</h1>
     <div class="date">
       <DataDate />
-      <button
-        type="button"
-        class="kebab"
-        :popovertarget="menuId"
-        :style="{
-          anchorName: `--${menuId}`,
-        }"
-      >
-        <svg
-          width="60px"
-          height="60px"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="12" cy="7" r="1.5" fill="#FFF" />
-          <circle cx="12" cy="12" r="1.5" fill="#FFF" />
-          <circle cx="12" cy="17" r="1.5" fill="#FFF" />
-        </svg>
-      </button>
-      <div
-        :id="menuId"
-        popover
-        class="popover"
-        :style="{
-          positionAnchor: `--${menuId}`,
-        }"
-      >
-        <menu class="menu">
-          <li>
-            <RouterLink to="admin" class="link">Создать</RouterLink>
-          </li>
-          <li>
-            <RouterLink to="admin?edit=" class="link">Редактировать</RouterLink>
-          </li>
-          <li>
-            <button type="button" class="link">Удалить</button>
-          </li>
-        </menu>
-      </div>
+      <KebabMenu>
+        <KebabMenuLink to="admin">Создать</KebabMenuLink>
+        <KebabMenuLink to="admin?edit=">Редактировать</KebabMenuLink>
+        <KebabMenuButton>Удалить</KebabMenuButton>
+      </KebabMenu>
     </div>
   </div>
   <Schedule />
