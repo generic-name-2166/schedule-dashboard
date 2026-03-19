@@ -93,41 +93,44 @@ onMounted(() => {
 
 <template>
   <div ref="timeline" class="timeline">
-    <div
-      class="today-line"
-      :style="{ left: calculateOffset(new Date()) }"
-    ></div>
-    <div class="timeline-header">
+    <div>
       <div
-        v-for="year of markers.major"
-        :key="year.offset"
-        class="marker-year"
-        :style="{ left: year.offset }"
-      >
-        <span>{{ year.year }}</span>
-        <div class="marker-line"></div>
-      </div>
-      <div
-        v-for="month of markers.minor"
-        :key="month"
-        class="marker-month"
-        :style="{ left: month }"
-      >
-        <div class="marker-line"></div>
-      </div>
-    </div>
+        class="today-line"
+        :style="{ left: calculateOffset(new Date()) }"
+      ></div>
 
-    <ul class="nodes">
-      <li v-for="node of nodes" :key="node.id">
+      <div class="timeline-header">
         <div
-          class="bar"
-          :style="{
-            left: calculateOffset(node.start),
-            width: calculateWidth(node.start, node.end),
-          }"
-        ></div>
-      </li>
-    </ul>
+          v-for="year of markers.major"
+          :key="year.offset"
+          class="marker-year"
+          :style="{ left: year.offset }"
+        >
+          <span>{{ year.year }}</span>
+          <div class="marker-line"></div>
+        </div>
+        <div
+          v-for="month of markers.minor"
+          :key="month"
+          class="marker-month"
+          :style="{ left: month }"
+        >
+          <div class="marker-line"></div>
+        </div>
+      </div>
+
+      <ul class="nodes">
+        <li v-for="node of nodes" :key="node.id">
+          <div
+            class="bar"
+            :style="{
+              left: calculateOffset(node.start),
+              width: calculateWidth(node.start, node.end),
+            }"
+          ></div>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -138,21 +141,25 @@ onMounted(() => {
   background-color: var(--secondary-background);
   border-radius: 1rem;
   padding-inline: 0.5rem;
-  position: relative;
 
-  > .today-line {
-    width: 2px;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    height: auto;
-    background-color: var(--secondary-color);
+  > div {
+    width: 2000px;
+    position: relative;
+
+    > .today-line {
+      width: 2px;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      height: auto;
+      background-color: var(--secondary-color);
+    }
   }
 }
 
 .timeline-header {
   height: 60px;
-  width: 2000px;
+  width: stretch;
   border-bottom: 0.125rem solid var(--primary-color);
   position: relative;
 }
@@ -193,7 +200,7 @@ onMounted(() => {
 .nodes {
   padding: 0;
   margin: 0;
-  width: 2000px;
+  width: stretch;
   list-style-type: none;
   display: grid;
   grid-template-columns: 1fr;
