@@ -37,10 +37,59 @@ const nodes = computed<ScheduleNode[]>(() =>
         .some((wbs) => node.wbsCode.startsWith(wbs) && node.wbsCode !== wbs),
   ),
 );
+
+interface YearTick {
+  year: number;
+  offset: string;
+}
+
+const markers = computed<{
+  major: YearTick[];
+  /** offsets */
+  minor: string[];
+}>(() => {
+  const startYear: number = TIMELINE_START.getFullYear();
+  const endYear: number = TIMELINE_END.getFullYear();
+
+  const major = new Array<YearTick>(endYear - startYear);
+  // 11 потому что тик за январь ставиться большим как год
+  const minor = new Array<string>((endYear - startYear) * 11);
+
+  let idx = 0;
+  for (let year = startYear; year < endYear; year++) {
+    const yearDate = new Date(year, 0, 1);
+    major[idx] = {
+      year,
+      offset: calculateOffset(yearDate),
+    } satisfies YearTick;
+
+    for (let month = 1; month < 12; month++) {
+      const monthDate = new Date(year, month, 1);
+      minor[idx * 11 + month] = calculateOffset(monthDate);
+    }
+
+    ++idx;
+  }
+
+  return {
+    major, minor,
+  };
+});
 </script>
 
 <template>
   <div class="timeline">
+    <div class="timeline-header">
+      <div class="today-line" :style="{ left: calculateOffset(new Date()) }"></div>
+      <div v-for="year of markers.major" :key="year.offset" class="marker-year" :style="{ left: year.offset }">
+        <span>{{ year.year }}</span>
+        <div class="marker-line"></div>
+      </div>
+      <div v-for="month of markers.minor" :key="month" class="marker-month" :style="{ left: month }">
+        <div class="marker-line"></div>
+      </div>
+    </div>
+
     <ul class="nodes">
       <li v-for="node of nodes" :key="node.id">
         <div
@@ -62,6 +111,53 @@ const nodes = computed<ScheduleNode[]>(() =>
   background-color: var(--secondary-background);
   border-radius: 1rem;
   padding-inline: 0.5rem;
+}
+
+.timeline-header {
+  height: 60px;
+  width: 2000px;
+  border-bottom: 0.125rem solid var(--primary-color);
+  position: relative;
+
+  > .today-line {
+    width: 2px;
+    position: absolute;
+    height: 10000px;
+    background-color: var(--secondary-color);
+  }
+}
+
+.marker-year {
+  position: absolute;
+  top: 0;
+  height: stretch;
+  display: flex;
+  flex-direction: column;
+
+  > span {
+    transform: translateX(-50%);
+    margin-block: 10px;
+  }
+
+  > .marker-line {
+    width: 2px;
+    height: stretch;
+    background-color: var(--secondary-color);
+  }
+}
+
+.marker-month {
+  position: absolute;
+  top: 0;
+  height: stretch;
+  display: flex;
+  align-items: end;
+
+  > .marker-line {
+    width: 1px;
+    height: 30%;
+    background-color: var(--secondary-color);
+  }
 }
 
 .nodes {

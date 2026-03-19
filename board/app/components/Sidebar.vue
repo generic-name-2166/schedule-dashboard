@@ -10,6 +10,7 @@ const props = defineProps<{
 
 <template>
   <div class="sidebar">
+    <div style="height: 60px"></div>
     <SidebarStep
       v-for="idx of props.roots"
       :key="props.nodes[idx]!.id"
