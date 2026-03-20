@@ -30,14 +30,14 @@ function calculateWidth(start?: Date, end?: Date): string {
   return ((duration / TOTAL_DURATION) * 100).toFixed(2) + "%";
 }
 
-const nodes = computed<ScheduleNode[]>(() =>
+/* const nodes = computed<ScheduleNode[]>(() =>
   props.nodes.filter(
     (node): boolean =>
       !store.closed
         .keys()
         .some((wbs) => node.wbsCode.startsWith(wbs) && node.wbsCode !== wbs),
   ),
-);
+); */
 
 interface YearTick {
   year: number;
@@ -95,11 +95,12 @@ onMounted(() => {
   <div ref="timeline" class="timeline">
     <div>
       <div
+        v-once
         class="today-line"
         :style="{ left: calculateOffset(new Date()) }"
       ></div>
 
-      <div class="timeline-header">
+      <div v-once class="timeline-header">
         <div
           v-for="year of markers.major"
           :key="year.offset"
@@ -120,14 +121,24 @@ onMounted(() => {
       </div>
 
       <ul class="nodes">
-        <li v-for="node of nodes" :key="node.id">
+        <li v-for="node of props.nodes" :key="node.id">
           <div
-            class="bar"
-            :style="{
-              left: calculateOffset(node.start),
-              width: calculateWidth(node.start, node.end),
-            }"
-          ></div>
+            v-show="
+              !store.closed
+                .keys()
+                .some(
+                  (wbs) => node.wbsCode.startsWith(wbs) && node.wbsCode !== wbs,
+                )
+            "
+          >
+            <div
+              class="bar"
+              :style="{
+                left: calculateOffset(node.start),
+                width: calculateWidth(node.start, node.end),
+              }"
+            ></div>
+          </div>
         </li>
       </ul>
     </div>
@@ -206,11 +217,15 @@ onMounted(() => {
   grid-template-columns: 1fr;
 
   > li {
-    display: block;
-    position: relative;
-    height: 40px;
-    box-sizing: border-box;
-    border-bottom: 0.125rem solid var(--secondary-color);
+    display: contents;
+
+    > div {
+      display: block;
+      position: relative;
+      height: 40px;
+      box-sizing: border-box;
+      border-bottom: 0.125rem solid var(--secondary-color);
+    }
   }
 }
 
