@@ -68,7 +68,7 @@ test("collecting schedule nodes into a tree", () => {
       end: "",
     },
   ];
-  const { roots, nodes } = collectTree(data);
+  const { roots, nodes, descendants } = collectTree(data);
   // Root should be index 0
   expect(roots.length).toBe(2);
   expect(roots[0]).toBe(0);
@@ -82,4 +82,8 @@ test("collecting schedule nodes into a tree", () => {
   expect(nodes[1]?.children).toHaveLength(0);
   expect(nodes[2]?.wbsCode).toEqual("6.4.2");
   expect(nodes[2]?.children).toHaveLength(0);
+
+  expect(descendants[0]).toBe(2);
+  expect(descendants[1]).toBe(2);
+  expect(descendants[2]).toBe(0);
 });

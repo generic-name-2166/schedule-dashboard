@@ -5,6 +5,7 @@ import SidebarStep from "./SidebarStep.vue";
 const props = defineProps<{
   nodes: ScheduleNode[];
   roots: number[];
+  descendants: number[];
 }>();
 </script>
 
@@ -16,6 +17,8 @@ const props = defineProps<{
       :key="props.nodes[idx]!.id"
       v-model="props.nodes[idx]!"
       :array="props.nodes"
+      :index="idx"
+      :descendants="props.descendants"
     />
   </div>
 </template>

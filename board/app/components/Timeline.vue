@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, onMounted } from "vue";
 import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
+import TimelineBar from "./TimelineBar.vue";
 
 const TIMELINE_START: Date = new Date("2021-01-01");
 const TIMELINE_END: Date = new Date("2029-01-01");
@@ -29,15 +30,6 @@ function calculateWidth(start?: Date, end?: Date): string {
   const duration: number = end.valueOf() - start.valueOf();
   return ((duration / TOTAL_DURATION) * 100).toFixed(2) + "%";
 }
-
-/* const nodes = computed<ScheduleNode[]>(() =>
-  props.nodes.filter(
-    (node): boolean =>
-      !store.closed
-        .keys()
-        .some((wbs) => node.wbsCode.startsWith(wbs) && node.wbsCode !== wbs),
-  ),
-); */
 
 interface YearTick {
   year: number;
@@ -121,24 +113,12 @@ onMounted(() => {
       </div>
 
       <ul class="nodes">
-        <li v-for="node of props.nodes" :key="node.id">
-          <div
-            v-show="
-              !store.closed
-                .keys()
-                .some(
-                  (wbs) => node.wbsCode.startsWith(wbs) && node.wbsCode !== wbs,
-                )
-            "
-          >
-            <div
-              class="bar"
-              :style="{
-                left: calculateOffset(node.start),
-                width: calculateWidth(node.start, node.end),
-              }"
-            ></div>
-          </div>
+        <li v-for="node of props.nodes" :key="node.id" v-memo="[node.visible.value]">
+          <TimelineBar
+            :visible="node.visible.value"
+            :left="calculateOffset(node.start)"
+            :width="calculateWidth(node.start, node.end)"
+          />
         </li>
       </ul>
     </div>
@@ -218,22 +198,6 @@ onMounted(() => {
 
   > li {
     display: contents;
-
-    > div {
-      display: block;
-      position: relative;
-      height: 40px;
-      box-sizing: border-box;
-      border-bottom: 0.125rem solid var(--secondary-color);
-    }
   }
-}
-
-.bar {
-  height: 60%;
-  position: absolute;
-  top: 20%;
-  background-color: var(--highlight-color);
-  border-radius: 0.5rem;
 }
 </style>

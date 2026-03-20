@@ -10,12 +10,12 @@ import Timeline from "./Timeline.vue";
 const store = useScheduleStore();
 
 const data: ScheduleDTO[] = await store.init();
-const { roots, nodes } = collectTree(data);
+const { roots, nodes, descendants } = collectTree(data);
 </script>
 
 <template>
   <div v-if="store.currentDate" class="gantt-chart">
-    <Sidebar :nodes="nodes" :roots="roots" />
+    <Sidebar :nodes="nodes" :roots="roots" :descendants="descendants" />
     <Timeline :nodes="nodes" />
   </div>
   <p v-else>Данные не предоставлены</p>

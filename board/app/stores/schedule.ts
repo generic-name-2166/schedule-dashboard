@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { reactive, ref, type Ref } from "vue";
+import { ref, type Ref } from "vue";
 
 export interface ScheduleDTO {
   id: number;
@@ -18,6 +18,7 @@ export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {
   end?: Date;
   children: number[];
   open: Ref<boolean>;
+  visible: Ref<boolean>;
 }
 
 export interface ScheduleTreeLike {
@@ -25,6 +26,8 @@ export interface ScheduleTreeLike {
   roots: number[];
   /** parse the object and add properties for rendering, MUST be the same size as input array */
   nodes: ScheduleNode[];
+  /** index of the last descendant for each node + 1, for leaves it will be current index + 1 */
+  descendants: number[];
 }
 
 function maybeParse(maybeDate?: string): Date | undefined {
@@ -36,6 +39,7 @@ function maybeParse(maybeDate?: string): Date | undefined {
  */
 export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   const roots: number[] = [];
+  const descendants: number[] = new Array<number>(array.length).fill(0);
 
   interface OpenNode {
     index: number;
@@ -56,7 +60,8 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     const depth: number = wbs.length;
     // Clean up stack to find actual parent
     while (open.length > 0 && open.at(-1)!.depth >= depth) {
-      void open.pop();
+      const closed: OpenNode = open.pop()!;
+      descendants[closed.index] = index;
     }
 
     if (open.length === 0) {
@@ -77,6 +82,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       start: maybeParse(value.start),
       end: maybeParse(value.end),
       open: ref(true),
+      visible: ref(true),
       children: [],
     } satisfies ScheduleNode;
   }
@@ -84,6 +90,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   return {
     roots,
     nodes,
+    descendants,
   };
 }
 
@@ -111,8 +118,6 @@ async function getAvailableDates(): Promise<Date[]> {
 }
 
 export const useScheduleStore = defineStore("schedule-store", () => {
-  /** WBS codes of closed nodes */
-  const closed = reactive<Set<string>>(new Set<string>());
   const dates = ref<Date[]>([]);
   const currentDate = ref<Date>();
 
@@ -190,7 +195,6 @@ export const useScheduleStore = defineStore("schedule-store", () => {
 
   return {
     currentDate,
-    closed,
     init,
     upload,
   };

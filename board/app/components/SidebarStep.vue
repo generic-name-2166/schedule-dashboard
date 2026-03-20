@@ -10,14 +10,18 @@ const model = defineModel<ScheduleNode>({
 
 const props = defineProps<{
   array: ScheduleNode[];
+  descendants: number[];
+  /** index in the global immutable array given above  */
+  index: number;
 }>();
 
 const toggle = (event: Event): void => {
   const el = event.target as HTMLDetailsElement;
-  if (el.open) {
-    store.closed.delete(model.value.wbsCode);
-  } else {
-    store.closed.add(model.value.wbsCode);
+  const open: boolean = el.open;
+  const descendantEndIdx: number = props.descendants[props.index]!;
+
+  for (let idx = props.index + 1; idx < descendantEndIdx; idx++) {
+    props.array[idx]!.visible.value = open;
   }
 };
 </script>
@@ -66,6 +70,8 @@ const toggle = (event: Event): void => {
         :key="props.array[idx]!.id"
         v-model="props.array[idx]!"
         :array="props.array"
+        :descendants="props.descendants"
+        :index="idx"
       />
     </div>
   </details>
