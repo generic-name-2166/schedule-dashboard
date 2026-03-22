@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from "vue";
+import { useRouter } from "vue-router";
 import KebabMenu from "~/components/menu/KebabMenu.vue";
 import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
 import { useScheduleStore } from "~/stores/schedule";
 
 const store = useScheduleStore();
+const router = useRouter();
 const isDragover = ref(false);
 const fileName = ref("");
 const target = useTemplateRef<HTMLInputElement>("target");
@@ -17,7 +19,10 @@ async function submit(event: SubmitEvent): Promise<void> {
   const file = inputs.get("file") as File;
   const date = new Date(inputs.get("date") as string);
 
-  await store.upload(file, date);
+  const ok = await store.upload(file, date);
+  if (ok) {
+    await router.push("/");
+  }
 }
 
 // https://css-tricks.com/drag-and-drop-file-uploading/

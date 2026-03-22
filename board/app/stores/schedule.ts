@@ -159,7 +159,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     return response.data.scheduleObjects;
   }
 
-  async function upload(file: File, date: Date): Promise<void> {
+  async function upload(file: File, date: Date): Promise<boolean> {
     const operations: string = JSON.stringify({
       query: `
       mutation UploadFile($date: DateTime!, $file: Upload!) {
@@ -189,8 +189,8 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const result = await res.json();
-    console.log(result);
+    const result: { data?: { uploadFile: true } } = await res.json();
+    return result.data?.uploadFile ?? false;
   }
 
   return {
