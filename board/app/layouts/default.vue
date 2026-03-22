@@ -1,9 +1,14 @@
+<script setup lang="ts">
+import Notifier from '~/components/Notifier.vue';
+</script>
+
 <template>
   <div class="wrapper">
     <div class="content">
       <slot />
     </div>
   </div>
+  <Notifier />
 </template>
 
 <style lang="css" scoped>

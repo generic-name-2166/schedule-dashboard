@@ -3,9 +3,11 @@ import { ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import KebabMenu from "~/components/menu/KebabMenu.vue";
 import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
+import { useNotifier } from "~/stores/notifier";
 import { useScheduleStore } from "~/stores/schedule";
 
 const store = useScheduleStore();
+const notifier = useNotifier();
 const router = useRouter();
 const isDragover = ref(false);
 const fileName = ref("");
@@ -19,9 +21,12 @@ async function submit(event: SubmitEvent): Promise<void> {
   const file = inputs.get("file") as File;
   const date = new Date(inputs.get("date") as string);
 
-  const ok = await store.upload(file, date);
-  if (ok) {
+  const error: string | undefined = await store.upload(file, date);
+  if (error === undefined) {
     await router.push("/");
+    notifier.addMessage("Данные успешно сохранены", "info");
+  } else {
+    notifier.addMessage(error, "error");
   }
 }
 

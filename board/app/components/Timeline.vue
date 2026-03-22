@@ -113,7 +113,11 @@ onMounted(() => {
       </div>
 
       <ul class="nodes">
-        <li v-for="node of props.nodes" :key="node.id" v-memo="[node.visible.value]">
+        <li
+          v-for="node of props.nodes"
+          :key="node.id"
+          v-memo="[node.visible.value]"
+        >
           <TimelineBar
             :visible="node.visible.value"
             :left="calculateOffset(node.start)"
