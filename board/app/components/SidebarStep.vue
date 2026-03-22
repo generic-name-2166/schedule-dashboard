@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
 
@@ -24,15 +25,31 @@ const toggle = (event: Event): void => {
     props.array[idx]!.visible.value = open;
   }
 };
+
+const branchHeight = computed<string>(() => {
+  const descendantEndIdx: number = props.descendants[props.index]!;
+  const descendantCount: number = descendantEndIdx - props.index;
+  const lastChildIdx: number = model.value.children.at(-1) ?? props.index;
+  const lastDescendantCount: number =
+    props.descendants[lastChildIdx]! - lastChildIdx;
+  const childrenCountWithoutLastbranch: number =
+    descendantCount - lastDescendantCount;
+  const branchLineHeight: number = childrenCountWithoutLastbranch * 40; /* px */
+  return `${branchLineHeight.toString()}px`;
+});
 </script>
 
 <template>
-  <details :open="model.open.value" class="details" @toggle="toggle">
-    <summary
-      v-once
-      :class="{ leaf: model.children.length === 0 }"
-      class="summary"
-    >
+  <div v-if="model.children.length === 0" v-once>
+    <p class="summary leaf" :title="model.name">
+      <span>
+        {{ model.name }}
+      </span>
+    </p>
+  </div>
+
+  <details v-else :open="model.open.value" class="details" @toggle="toggle">
+    <summary v-once class="summary">
       <p :title="model.name">
         <span>
           {{ model.name }}
@@ -40,7 +57,6 @@ const toggle = (event: Event): void => {
       </p>
 
       <svg
-        v-if="model.children.length !== 0"
         class="icon"
         width="24"
         height="24"
@@ -64,7 +80,11 @@ const toggle = (event: Event): void => {
         </g>
       </svg>
     </summary>
-    <div class="children">
+    <div
+      v-memo="[model.children.length]"
+      class="children"
+      :style="{ '--branch-height': branchHeight }"
+    >
       <SidebarStep
         v-for="idx of model.children"
         :key="props.array[idx]!.id"
@@ -88,7 +108,18 @@ const toggle = (event: Event): void => {
 
 .children {
   padding-left: 1rem;
-  border-left: 0.125rem solid var(--secondary-color);
+  position: relative;
+
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: -21px;
+    left: -0.5rem;
+    box-sizing: border-box;
+    border-left: 2px solid var(--secondary-color);
+    height: var(--branch-height, 0);
+  }
 }
 
 .summary {
@@ -105,6 +136,17 @@ const toggle = (event: Event): void => {
 
   height: 40px;
 
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: -1.5rem;
+    height: 0;
+    border-top: 2px solid var(--secondary-color);
+    width: 1rem;
+  }
+
   > p {
     white-space: nowrap;
     overflow-x: hidden;
@@ -120,6 +162,7 @@ const toggle = (event: Event): void => {
 
   &.leaf {
     list-style: none;
+    margin: 0;
   }
 }
 </style>

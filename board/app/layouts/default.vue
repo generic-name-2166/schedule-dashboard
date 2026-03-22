@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Notifier from '~/components/Notifier.vue';
+import Notifier from "~/components/Notifier.vue";
 </script>
 
 <template>

@@ -24,7 +24,7 @@ const { roots, nodes, descendants } = collectTree(data);
 <style scoped>
 .gantt-chart {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 3fr;
+  grid-template-columns: minmax(0, 1fr) 2fr;
   gap: 1rem;
 }
 </style>
