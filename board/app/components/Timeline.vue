@@ -20,7 +20,7 @@ function calculateOffset(start?: Date): string {
     return "0";
   }
   const offset: number = start.valueOf() - TIMELINE_START.valueOf();
-  return ((offset / TOTAL_DURATION) * 100).toFixed(2) + "%";
+  return ((offset / TOTAL_DURATION) * 100).toPrecision(2) + "%";
 }
 
 function calculateWidth(start?: Date, end?: Date): string {
@@ -28,7 +28,7 @@ function calculateWidth(start?: Date, end?: Date): string {
     return "0";
   }
   const duration: number = end.valueOf() - start.valueOf();
-  return ((duration / TOTAL_DURATION) * 100).toFixed(2) + "%";
+  return ((duration / TOTAL_DURATION) * 100).toPrecision(2) + "%";
 }
 
 interface YearTick {
