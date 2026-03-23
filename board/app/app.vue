@@ -19,6 +19,7 @@
   --secondary-background: #111214;
   --tertiary-background: #0a0b0d;
   --highlight-color: #d2f1e4;
+  --error-color: #ff6600;
 }
 
 body {
