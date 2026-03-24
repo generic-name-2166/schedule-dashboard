@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { useId } from "vue";
 import type { ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
 
@@ -12,6 +12,8 @@ const props = defineProps<{
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
+  /** anchor to put on the last child for the parent to reference */
+  lastChildAnchor?: string;
 }>();
 
 const toggle = (event: Event): void => {
@@ -24,17 +26,7 @@ const toggle = (event: Event): void => {
   }
 };
 
-const branchHeight = computed<string>(() => {
-  const descendantEndIdx: number = props.descendants[props.index]!;
-  const descendantCount: number = descendantEndIdx - props.index;
-  const lastChildIdx: number = model.value.children.at(-1) ?? props.index;
-  const lastDescendantCount: number =
-    props.descendants[lastChildIdx]! - lastChildIdx;
-  const childrenCountWithoutLastbranch: number =
-    descendantCount - lastDescendantCount;
-  const branchLineHeight: number = childrenCountWithoutLastbranch * 40; /* px */
-  return `${branchLineHeight.toString()}px`;
-});
+const parentAnchor = `--${useId()}`;
 </script>
 
 <template>
@@ -81,15 +73,24 @@ const branchHeight = computed<string>(() => {
     <div
       v-memo="[model.children.length]"
       class="children"
-      :style="{ '--branch-height': branchHeight }"
+      :style="{ 'anchor-name': props.lastChildAnchor }"
     >
+      <div class="branch" :style="{ 'position-anchor': parentAnchor }"></div>
+
       <SidebarStep
-        v-for="idx of model.children"
+        v-for="idx of model.children.slice(0, model.children.length - 1)"
         :key="props.array[idx]!.id"
         v-model="props.array[idx]!"
         :array="props.array"
         :descendants="props.descendants"
         :index="idx"
+      />
+      <SidebarStep
+        v-model="props.array[model.children.at(-1)!]!"
+        :array="props.array"
+        :descendants="props.descendants"
+        :index="model.children.at(-1)!"
+        :last-child-anchor="parentAnchor"
       />
     </div>
   </details>
@@ -108,15 +109,14 @@ const branchHeight = computed<string>(() => {
   padding-left: 1rem;
   position: relative;
 
-  &::before {
-    content: "";
+  > .branch {
     display: block;
     position: absolute;
     top: -21px;
     left: -0.5rem;
     box-sizing: border-box;
     border-left: 2px solid var(--secondary-color);
-    height: var(--branch-height, 0);
+    height: calc(100% - anchor-size(height, 0px));
   }
 }
 
