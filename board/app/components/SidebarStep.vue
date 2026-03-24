@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
+import type { ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
-
-const store = useScheduleStore();
 
 const model = defineModel<ScheduleNode>({
   required: true,
@@ -40,8 +38,8 @@ const branchHeight = computed<string>(() => {
 </script>
 
 <template>
-  <div v-if="model.children.length === 0" v-once>
-    <p class="summary leaf" :title="model.name">
+  <div v-if="model.children.length === 0" v-once class="summary">
+    <p class="leaf" :title="model.name">
       <span>
         {{ model.name }}
       </span>
