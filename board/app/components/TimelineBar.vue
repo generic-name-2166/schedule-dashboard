@@ -1,20 +1,30 @@
 <script setup lang="ts">
 const props = defineProps<{
   visible: boolean;
+  days: number;
   left: string;
   width: string;
 }>();
+
+const formatter = new Intl.NumberFormat("ru-RU", {
+  style: "unit",
+  unit: "day",
+  unitDisplay: "long",
+});
 </script>
 
 <template>
   <div v-show="props.visible" class="bar-wrapper">
-    <div
+    <p
+      v-if="props.days"
       class="bar"
       :style="{
         left: props.left,
         width: props.width,
       }"
-    ></div>
+    >
+      {{ formatter.format(props.days) }}
+    </p>
   </div>
 </template>
 
@@ -32,6 +42,13 @@ const props = defineProps<{
   position: absolute;
   top: 20%;
   background-color: var(--highlight-color);
+  color: var(--primary-background);
   border-radius: 0.5rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  white-space: nowrap;
 }
 </style>

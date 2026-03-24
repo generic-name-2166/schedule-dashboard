@@ -15,6 +15,14 @@ const props = defineProps<{
   nodes: ScheduleNode[];
 }>();
 
+function calculateDays(start?: Date, end?: Date): number {
+  if (!start || !end) {
+    return 0;
+  }
+  const msDiff: number = end.valueOf() - start.valueOf();
+  return msDiff / (1000 * 60 * 60 * 24);
+}
+
 function calculateOffset(start?: Date): string {
   if (!start) {
     return "0";
@@ -120,6 +128,7 @@ onMounted(() => {
         >
           <TimelineBar
             :visible="node.visible.value"
+            :days="calculateDays(node.start, node.end)"
             :left="calculateOffset(node.start)"
             :width="calculateWidth(node.start, node.end)"
           />

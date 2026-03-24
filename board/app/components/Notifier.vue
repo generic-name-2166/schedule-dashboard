@@ -50,7 +50,7 @@ const notifier = useNotifier();
 }
 
 /* https://vuejs.org/guide/built-ins/transition-group.html */
-.notifier-move, 
+.notifier-move,
 .notifier-enter-active,
 .notifier-leave-active {
   transition: all 0.5s ease;

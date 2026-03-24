@@ -82,7 +82,9 @@ const input = (): void => {
         <label class="date"><input type="date" name="date" required /></label>
         <KebabMenu>
           <KebabMenuButton type="submit">Сохранить</KebabMenuButton>
-          <KebabMenuButton @click="() => notifier.addMessage('test', 'error')">Notifier</KebabMenuButton>
+          <KebabMenuButton @click="() => notifier.addMessage('test', 'error')"
+            >Notifier</KebabMenuButton
+          >
         </KebabMenu>
       </div>
     </div>
