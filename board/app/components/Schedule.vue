@@ -18,7 +18,7 @@ const { roots, nodes, descendants } = collectTree(data);
     <Sidebar :nodes="nodes" :roots="roots" :descendants="descendants" />
     <Timeline :nodes="nodes" />
   </div>
-  <p v-else>Данные не предоставлены</p>
+  <p v-else class="missing-data">Данные не предоставлены</p>
 </template>
 
 <style scoped>
@@ -26,5 +26,10 @@ const { roots, nodes, descendants } = collectTree(data);
   display: grid;
   grid-template-columns: minmax(0, 1fr) 2fr;
   gap: 1rem;
+}
+
+.missing-data {
+  display: flex;
+  justify-content: center;
 }
 </style>
