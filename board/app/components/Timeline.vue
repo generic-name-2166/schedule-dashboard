@@ -146,6 +146,7 @@ onMounted(() => {
 <style lang="css" scoped>
 .timeline {
   overflow-x: scroll;
+  scrollbar-color: var(--primary-background) var(--secondary-background);
   grid-row: span 2;
   background-color: var(--secondary-background);
   border-radius: 1rem;
