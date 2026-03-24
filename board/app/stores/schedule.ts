@@ -87,6 +87,11 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     } satisfies ScheduleNode;
   }
 
+  // fill out the descendants array values for the last elements of each level
+  for (const closed of open) {
+    descendants[closed.index] = array.length;
+  }
+
   return {
     roots,
     nodes,
