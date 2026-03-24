@@ -3,7 +3,10 @@ const props = defineProps<{
   visible: boolean;
   days: number;
   left: string;
-  width: string;
+  width: {
+    percentage: string;
+    type: "small" | "big";
+  };
 }>();
 
 const formatter = new Intl.NumberFormat("ru-RU", {
@@ -20,10 +23,14 @@ const formatter = new Intl.NumberFormat("ru-RU", {
       class="bar"
       :style="{
         left: props.left,
-        width: props.width,
+        width: props.width.percentage,
       }"
     >
-      {{ formatter.format(props.days) }}
+      <span>
+        <span :class="{ 'bar-outside': props.width.type === 'small' }">
+          {{ formatter.format(props.days) }}
+        </span>
+      </span>
     </p>
   </div>
 </template>
@@ -45,10 +52,24 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   color: var(--primary-background);
   border-radius: 0.5rem;
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-weight: bold;
   white-space: nowrap;
+
+  > span {
+    position: relative;
+    width: stretch;
+    height: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    > .bar-outside {
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 0.5rem);
+      transform: translateY(-50%);
+      color: var(--primary-color);
+    }
+  }
 }
 </style>

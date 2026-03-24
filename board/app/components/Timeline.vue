@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, onMounted } from "vue";
-import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
+import type { ScheduleNode } from "../stores/schedule.ts";
 import TimelineBar from "./TimelineBar.vue";
 
 const TIMELINE_START: Date = new Date("2021-01-01");
 const TIMELINE_END: Date = new Date("2029-01-01");
 const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
+/** percentage of 2000px (width of the inner timeline) that fits days text */
+const WIDTH_CUTOFF = 5;
 
-const store = useScheduleStore();
 const timeline = useTemplateRef<HTMLDivElement>("timeline");
 
 const props = defineProps<{
@@ -31,12 +32,16 @@ function calculateOffset(start?: Date): string {
   return ((offset / TOTAL_DURATION) * 100).toFixed(2) + "%";
 }
 
-function calculateWidth(start?: Date, end?: Date): string {
+function calculateWidth(start?: Date, end?: Date): { percentage: string; type: "big" | "small" } {
   if (!start || !end) {
-    return "0";
+    return { percentage: "0", type: "big" };
   }
   const duration: number = end.valueOf() - start.valueOf();
-  return ((duration / TOTAL_DURATION) * 100).toFixed(2) + "%";
+  const percentage = duration / TOTAL_DURATION * 100;
+  return {
+    percentage: percentage.toFixed(2) + "%",
+    type: percentage > WIDTH_CUTOFF ? "big" : "small",
+  }
 }
 
 interface YearTick {
