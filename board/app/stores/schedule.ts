@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, type Ref } from "vue";
+import { computed, ref, type Ref } from "vue";
 
 export interface ScheduleDTO {
   id: number;
@@ -118,7 +118,6 @@ async function getAvailableDates(): Promise<Date[]> {
   const response: { data: { availableDates: string[] } } = await fetch(
     url,
   ).then((r) => r.json());
-  console.log(response);
   return response.data.availableDates.map((date) => new Date(date));
 }
 
@@ -126,13 +125,10 @@ export const useScheduleStore = defineStore("schedule-store", () => {
   const dates = ref<Date[]>([]);
   const currentDate = ref<Date>();
 
-  async function init(): Promise<ScheduleDTO[]> {
-    dates.value = await getAvailableDates();
-    currentDate.value = dates.value.at(-1);
-    if (!currentDate.value) {
-      return [];
-    }
+  const nodes = ref<ScheduleDTO[]>([]);
+  const treelike = computed<ScheduleTreeLike>(() => collectTree(nodes.value));
 
+  async function fetchCurrent(): Promise<void> {
     const query = `
       query ScheduleObjects($date: DateTime!) {
         scheduleObjects(date: $date) {
@@ -146,7 +142,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
         }
       }
     `;
-    const variables = `{ "date": "${currentDate.value.toISOString()}" }`;
+    const variables = `{ "date": "${currentDate.value!.toISOString()}" }`;
     const params = new URLSearchParams({
       query,
       variables,
@@ -161,7 +157,21 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     const response: { data: { scheduleObjects: ScheduleDTO[] } } = await fetch(
       url,
     ).then((r) => r.json());
-    return response.data.scheduleObjects;
+    nodes.value = response.data.scheduleObjects;
+  }
+
+  async function init(): Promise<void> {
+    dates.value = await getAvailableDates();
+    currentDate.value = dates.value.at(-1);
+    if (!currentDate.value) {
+      return;
+    }
+    return fetchCurrent();
+  }
+
+  async function changeDate(date: Date): Promise<void> {
+    currentDate.value = date;
+    return fetchCurrent();
   }
 
   async function upload(file: File, date: Date): Promise<string | undefined> {
@@ -199,8 +209,11 @@ export const useScheduleStore = defineStore("schedule-store", () => {
   }
 
   return {
+    dates,
     currentDate,
+    treelike,
     init,
     upload,
+    changeDate,
   };
 });

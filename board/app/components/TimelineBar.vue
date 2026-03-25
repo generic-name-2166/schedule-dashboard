@@ -20,6 +20,7 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   <div v-show="props.visible" class="bar-wrapper">
     <p
       v-if="props.days"
+      v-once
       class="bar"
       :style="{
         left: props.left,

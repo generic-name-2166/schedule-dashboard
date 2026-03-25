@@ -1,22 +1,19 @@
 <script setup lang="ts">
 import {
-  collectTree,
   useScheduleStore,
-  type ScheduleDTO,
 } from "../stores/schedule.ts";
 import Sidebar from "./Sidebar.vue";
 import Timeline from "./Timeline.vue";
 
 const store = useScheduleStore();
 
-const data: ScheduleDTO[] = await store.init();
-const { roots, nodes, descendants } = collectTree(data);
+await store.init();
 </script>
 
 <template>
-  <div v-if="store.currentDate" class="gantt-chart">
-    <Sidebar :nodes="nodes" :roots="roots" :descendants="descendants" />
-    <Timeline :nodes="nodes" />
+  <div v-if="store.currentDate" v-memo="[store.currentDate]" class="gantt-chart">
+    <Sidebar :nodes="store.treelike.nodes" :roots="store.treelike.roots" :descendants="store.treelike.descendants" />
+    <Timeline :nodes="store.treelike.nodes" />
   </div>
   <p v-else class="missing-data">Данные не предоставлены</p>
 </template>
