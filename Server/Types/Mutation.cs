@@ -48,18 +48,31 @@ public static class Mutation
         return DateCommon.DateToSeconds(date);
     }
 
-    public static async Task<bool> UploadFileAsync(DateTime date, IFile file)
+    private static bool DateExists(SqliteConnection db, long dateSeconds)
     {
-        string fileName = file.Name;
-        long? fileSize = file.Length;
+        string stmt = """
+                SELECT EXISTS(
+                    SELECT 1 FROM schedule WHERE date_s = @DateSeconds
+                )
+            """;
+        SqliteCommand command = new(stmt, db);
+        command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
+        SqliteDataReader query = command.ExecuteReader();
+        if (!query.Read())
+        {
+            return false;
+        }
+        return query.GetBoolean(0);
+    }
 
-        Console.WriteLine($"{fileName} {fileSize}");
-
-        long dateSeconds = DateCommon.DateToSeconds(date);
-
-        using SqliteConnection db = InitializeDatabase();
-        using SqliteTransaction tx = db.BeginTransaction();
-        string query = """
+    private static async Task InsertData(
+        SqliteConnection db,
+        SqliteTransaction tx,
+        long dateSeconds,
+        IFile file
+    )
+    {
+        string stmt = """
             INSERT INTO schedule VALUES (
                 @DateSeconds, 
                 @Id, 
@@ -88,7 +101,7 @@ public static class Mutation
                 long? startSeconds = ParseDate(row["Начало"].Span);
                 long? endSeconds = ParseDate(row["Окончание"].Span);
 
-                SqliteCommand insertCommand = new(query, db, tx);
+                SqliteCommand insertCommand = new(stmt, db, tx);
                 insertCommand.Parameters.AddWithValue("@DateSeconds", dateSeconds);
                 insertCommand.Parameters.AddWithValue("@Id", id);
                 insertCommand.Parameters.AddWithValue("@Level", level);
@@ -111,11 +124,48 @@ public static class Mutation
         catch (Exception ex)
         {
             Console.WriteLine($"Parsing error: {ex.GetType()} {ex.Message}");
+            // TODO
             throw;
         }
+    }
 
-        // We can now work with standard stream functionality of .NET
-        // to handle the file.
+    public static async Task<bool> CreateScheduleObjects(DateTime date, IFile file)
+    {
+        long dateSeconds = DateCommon.DateToSeconds(date);
+
+        using SqliteConnection db = InitializeDatabase();
+
+        if (DateExists(db, dateSeconds))
+        {
+            throw new Exception("Данные на данную дату уже существуют");
+        }
+
+        using SqliteTransaction tx = db.BeginTransaction();
+
+        await InsertData(db, tx, dateSeconds, file);
+
+        return true;
+    }
+
+    public static async Task<bool> EditScheduleObjects(DateTime date, IFile file)
+    {
+        long dateSeconds = DateCommon.DateToSeconds(date);
+
+        using SqliteConnection db = InitializeDatabase();
+        using SqliteTransaction tx = db.BeginTransaction();
+
+        string stmt = """
+                DELETE FROM schedule WHERE date_s = @DateSeconds
+            """;
+        SqliteCommand command = new(stmt, db, tx);
+        command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
+        SqliteDataReader reader = command.ExecuteReader();
+        if (reader.RecordsAffected <= 0)
+        {
+            throw new Exception("Данных на дату не существует");
+        }
+
+        await InsertData(db, tx, dateSeconds, file);
         return true;
     }
 }

@@ -3,7 +3,7 @@ namespace Server.Common;
 public static class DateCommon
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="date"></param>
     /// <returns>Amount of seconds since UNIX epoch</returns>
@@ -14,7 +14,7 @@ public static class DateCommon
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="seconds">Amount of seconds since UNIX epoch</param>
     /// <returns></returns>

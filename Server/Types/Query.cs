@@ -85,8 +85,8 @@ public static class Query
         using SqliteConnection db = InitializeDatabase();
         List<DateTime> dates = [];
         string stmt = """
-            SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
-        """;
+                SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
+            """;
         SqliteCommand selectCommand = new(stmt, db);
 
         SqliteDataReader query = selectCommand.ExecuteReader();
