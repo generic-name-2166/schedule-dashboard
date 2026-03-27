@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using HotChocolate.Resolvers;
 using Microsoft.Data.Sqlite;
 using nietras.SeparatedValues;
 using Server.Common;
@@ -137,7 +138,11 @@ public static class Mutation
 
         if (DateExists(db, dateSeconds))
         {
-            throw new Exception("Данные на данную дату уже существуют");
+            IError error = ErrorBuilder
+                .New()
+                .SetMessage("Данные на данную дату уже существуют")
+                .Build();
+            throw new GraphQLException(error);
         }
 
         using SqliteTransaction tx = db.BeginTransaction();
@@ -162,7 +167,8 @@ public static class Mutation
         SqliteDataReader reader = command.ExecuteReader();
         if (reader.RecordsAffected <= 0)
         {
-            throw new Exception("Данных на дату не существует");
+            IError error = ErrorBuilder.New().SetMessage("Данных на дату не существует").Build();
+            throw new GraphQLException(error);
         }
 
         await InsertData(db, tx, dateSeconds, file);
