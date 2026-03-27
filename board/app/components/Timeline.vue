@@ -32,16 +32,19 @@ function calculateOffset(start?: Date): string {
   return ((offset / TOTAL_DURATION) * 100).toFixed(2) + "%";
 }
 
-function calculateWidth(start?: Date, end?: Date): { percentage: string; type: "big" | "small" } {
+function calculateWidth(
+  start?: Date,
+  end?: Date,
+): { percentage: string; type: "big" | "small" } {
   if (!start || !end) {
     return { percentage: "0", type: "big" };
   }
   const duration: number = end.valueOf() - start.valueOf();
-  const percentage = duration / TOTAL_DURATION * 100;
+  const percentage = (duration / TOTAL_DURATION) * 100;
   return {
     percentage: percentage.toFixed(2) + "%",
     type: percentage > WIDTH_CUTOFF ? "big" : "small",
-  }
+  };
 }
 
 interface YearTick {
@@ -169,6 +172,7 @@ onMounted(() => {
 
 .timeline-header {
   height: 60px;
+  box-sizing: border-box;
   width: stretch;
   border-bottom: 0.125rem solid var(--primary-color);
   position: relative;

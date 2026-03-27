@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {
-  useScheduleStore,
-} from "../stores/schedule.ts";
+import { useScheduleStore } from "../stores/schedule.ts";
 import Sidebar from "./Sidebar.vue";
 import Timeline from "./Timeline.vue";
 
@@ -11,8 +9,16 @@ await store.init();
 </script>
 
 <template>
-  <div v-if="store.currentDate" v-memo="[store.currentDate]" class="gantt-chart">
-    <Sidebar :nodes="store.treelike.nodes" :roots="store.treelike.roots" :descendants="store.treelike.descendants" />
+  <div
+    v-if="store.currentDate"
+    v-memo="[store.currentDate]"
+    class="gantt-chart"
+  >
+    <Sidebar
+      :nodes="store.treelike.nodes"
+      :roots="store.treelike.roots"
+      :descendants="store.treelike.descendants"
+    />
     <Timeline :nodes="store.treelike.nodes" />
   </div>
   <p v-else class="missing-data">Данные не предоставлены</p>

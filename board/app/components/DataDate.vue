@@ -14,7 +14,12 @@ async function change(event: Event): Promise<void> {
   <p v-if="store.currentDate" class="data-date">
     Данные предоставлены на
     <select @change="change">
-      <option v-for="date of store.dates" :key="date.valueOf()" :selected="date.valueOf() === store.currentDate.valueOf()" :value="date.valueOf()">
+      <option
+        v-for="date of store.dates"
+        :key="date.valueOf()"
+        :selected="date.valueOf() === store.currentDate.valueOf()"
+        :value="date.valueOf()"
+      >
         <!-- <time :datetime="date.toISOString()">
           {{ date.toLocaleDateString("ru-RU") }}
         </time> -->
