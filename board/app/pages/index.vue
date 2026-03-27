@@ -13,7 +13,7 @@ import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
       <DataDate />
       <KebabMenu>
         <KebabMenuLink to="admin">Создать</KebabMenuLink>
-        <KebabMenuLink to="admin?edit=">Редактировать</KebabMenuLink>
+        <KebabMenuLink :to="`admin?edit=`">Редактировать</KebabMenuLink>
         <KebabMenuButton>Удалить</KebabMenuButton>
       </KebabMenu>
     </div>

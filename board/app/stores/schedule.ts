@@ -121,6 +121,34 @@ async function getAvailableDates(): Promise<Date[]> {
   return response.data.availableDates.map((date) => new Date(date));
 }
 
+async function sendGraphQL(
+  operations: { query: string; variables: { date: Date; file: null } },
+  file: File,
+): Promise<string | undefined> {
+  const map: string = JSON.stringify({
+    "0": ["variables.file"],
+  });
+
+  const formData = new FormData();
+  formData.append("operations", JSON.stringify(operations));
+  formData.append("map", map);
+  formData.append("0", file);
+
+  const res = await fetch("/graphql", {
+    method: "POST",
+    // Do NOT set Content-Type; let the browser set multipart
+    body: formData,
+    // https://stackoverflow.com/a/76686111
+    headers: {
+      "GraphQL-preflight": "1",
+    },
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const result: { errors?: { message: string }[] } = await res.json();
+  return result.errors?.[0]?.message;
+}
+
 export const useScheduleStore = defineStore("schedule-store", () => {
   const dates = ref<Date[]>([]);
   const currentDate = ref<Date>();
@@ -174,38 +202,30 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     return fetchCurrent();
   }
 
-  async function upload(file: File, date: Date): Promise<string | undefined> {
-    const operations: string = JSON.stringify({
+  async function create(file: File, date: Date): Promise<string | undefined> {
+    const operations = {
       query: `
-      mutation UploadFile($date: DateTime!, $file: Upload!) {
-        uploadFile(date: $date, file: $file)
+      mutation CreateScheduleObjects($date: DateTime!, $file: Upload!) {
+        createScheduleObjects(date: $date, file: $file)
       }
     `,
       variables: { date, file: null },
-    });
+    };
 
-    const map: string = JSON.stringify({
-      "0": ["variables.file"],
-    });
+    return sendGraphQL(operations, file);
+  }
 
-    const formData = new FormData();
-    formData.append("operations", operations);
-    formData.append("map", map);
-    formData.append("0", file);
+  async function edit(file: File, date: Date): Promise<string | undefined> {
+    const operations = {
+      query: `
+      mutation EditScheduleObjects($date: DateTime!, $file: Upload!) {
+        editScheduleObjects(date: $date, file: $file)
+      }
+    `,
+      variables: { date, file: null },
+    };
 
-    const res = await fetch("/graphql", {
-      method: "POST",
-      // Do NOT set Content-Type; let the browser set multipart
-      body: formData,
-      // https://stackoverflow.com/a/76686111
-      headers: {
-        "GraphQL-preflight": "1",
-      },
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const result: { errors?: { message: string }[] } = await res.json();
-    return result.errors?.[0]?.message;
+    return sendGraphQL(operations, file);
   }
 
   return {
@@ -213,7 +233,8 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     currentDate,
     treelike,
     init,
-    upload,
+    create,
+    edit,
     changeDate,
   };
 });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref, useTemplateRef } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import KebabMenu from "~/components/menu/KebabMenu.vue";
 import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
 import { useNotifier } from "~/stores/notifier";
@@ -9,9 +9,11 @@ import { useScheduleStore } from "~/stores/schedule";
 const store = useScheduleStore();
 const notifier = useNotifier();
 const router = useRouter();
+const route = useRoute();
 const isDragover = ref(false);
 const fileName = ref("");
 const target = useTemplateRef<HTMLInputElement>("target");
+const edit = computed<boolean>(() => Object.hasOwn(route.query, "edit"));
 
 async function submit(event: SubmitEvent): Promise<void> {
   event.preventDefault();
@@ -21,12 +23,14 @@ async function submit(event: SubmitEvent): Promise<void> {
   const file = inputs.get("file") as File;
   const date = new Date(inputs.get("date") as string);
 
-  const error: string | undefined = await store.upload(file, date);
-  if (error === undefined) {
+  const error: string | undefined = edit.value
+    ? await store.edit(file, date)
+    : await store.create(file, date);
+  if (error) {
+    notifier.addMessage(error, "error");
+  } else {
     await router.push("/");
     notifier.addMessage("Данные успешно сохранены", "info");
-  } else {
-    notifier.addMessage(error, "error");
   }
 }
 
@@ -79,12 +83,18 @@ const input = (): void => {
       <h1>График строительства</h1>
 
       <div>
-        <label class="date"><input type="date" name="date" required /></label>
+        <label class="date">
+          <input
+            v-if="edit"
+            :value="store.currentDate?.toISOString().split('T')[0]"
+            type="date"
+            name="date"
+            required
+          />
+          <input v-else type="date" name="date" required />
+        </label>
         <KebabMenu>
           <KebabMenuButton type="submit">Сохранить</KebabMenuButton>
-          <KebabMenuButton @click="() => notifier.addMessage('test', 'error')"
-            >Notifier</KebabMenuButton
-          >
         </KebabMenu>
       </div>
     </div>
