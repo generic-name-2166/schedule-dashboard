@@ -18,12 +18,13 @@ export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {
   end?: Date;
   children: number[];
   open: Ref<boolean>;
+  /** whether the branch should be drawn on the depth level */
+  depth: boolean[];
   visible: Ref<boolean>;
 }
 
 export interface ScheduleTreeLike {
-  /** indicies of root nodes */
-  roots: number[];
+  roots: Set<number>;
   /** parse the object and add properties for rendering, MUST be the same size as input array */
   nodes: ScheduleNode[];
   /** index of the last descendant for each node + 1, for leaves it will be current index + 1 */
@@ -38,7 +39,7 @@ function maybeParse(maybeDate?: string): Date | undefined {
  * @param array MUST be sorted by WBS code
  */
 export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
-  const roots: number[] = [];
+  const roots = new Set<number>();
   const descendants: number[] = new Array<number>(array.length).fill(0);
 
   interface OpenNode {
@@ -52,6 +53,8 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
    */
   const open: OpenNode[] = [];
 
+  const rootDepth = array[0]?.wbsCode.split(".").length ?? 0;
+
   const nodes: ScheduleNode[] = new Array<ScheduleNode>(array.length);
   for (let index = 0; index < array.length; index++) {
     const value = array[index]!;
@@ -64,8 +67,8 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       descendants[closed.index] = index;
     }
 
-    if (open.length === 0) {
-      roots.push(index);
+    if (open.length == 0) {
+      roots.add(index);
     } else {
       // utilizing the fact that input array is WBS sorted to backtrack to parent by index
       const parent: ScheduleNode = nodes[open.at(-1)!.index]!;
@@ -81,6 +84,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       ...value,
       start: maybeParse(value.start),
       end: maybeParse(value.end),
+      depth: new Array<boolean>(depth - rootDepth + 1).fill(true),
       open: ref(true),
       visible: ref(true),
       children: [],
@@ -90,6 +94,24 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   // fill out the descendants array values for the last elements of each level
   for (const closed of open) {
     descendants[closed.index] = array.length;
+  }
+
+  for (let index = 0; index < nodes.length; ++index) {
+    const node = nodes[index]!;
+    const lastChild = node.children.at(-1);
+    if (!lastChild) {
+      continue;
+    }
+    const childDepthIdx: number = node.depth.length;
+    for (let idx = lastChild + 1; idx < descendants[index]!; ++idx) {
+      const descendantNode = nodes[idx]!;
+      descendantNode.depth[childDepthIdx] = false;
+    }
+  }
+  const lastRoot = Math.max(...roots);
+  for (let idx = lastRoot + 1; idx < nodes.length; ++idx) {
+    const descendantNode = nodes[idx]!;
+    descendantNode.depth[0] = false;
   }
 
   return {

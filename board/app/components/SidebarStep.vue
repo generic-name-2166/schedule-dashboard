@@ -1,45 +1,65 @@
 <script setup lang="ts">
-import { useId } from "vue";
 import type { ScheduleNode } from "../stores/schedule.ts";
-import SidebarStep from "./SidebarStep.vue";
 
 const model = defineModel<ScheduleNode>({
   required: true,
 });
 
 const props = defineProps<{
+  sidebarId: string;
   array: ScheduleNode[];
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
-  /** anchor to put on the last child for the parent to reference */
-  lastChildAnchor?: string;
+  open: boolean;
+  visible: boolean;
 }>();
 
-const toggle = (event: Event): void => {
-  const el = event.target as HTMLDetailsElement;
-  const open: boolean = el.open;
+const toggle = (): void => {
+  const open = !props.open;
   const descendantEndIdx: number = props.descendants[props.index]!;
 
   for (let idx = props.index + 1; idx < descendantEndIdx; idx++) {
     props.array[idx]!.visible.value = open;
   }
+  model.value.open.value = open;
 };
 
-const parentAnchor = `--${useId()}`;
+console.log(model.value.depth);
 </script>
 
 <template>
-  <div v-if="model.children.length === 0" v-once class="summary">
-    <p class="leaf" :title="model.name">
-      <span>
-        {{ model.name }}
-      </span>
-    </p>
+  <div v-if="props.visible && model.children.length === 0">
+    <div
+      v-for="branch, idx of model.depth"
+      :key="`${branch}-${idx}`"
+      class="branch"
+      :class="{ 'branch-parent': branch }"
+    ></div>
+
+    <div class="summary">
+      <p class="leaf" :title="model.name">
+        <span>
+          {{ model.name }}
+        </span>
+      </p>
+    </div>
   </div>
 
-  <details v-else :open="model.open.value" class="details" @toggle="toggle">
-    <summary v-once class="summary">
+  <div
+    v-else-if="props.visible"
+    :class="{ open: props.open }"
+    class="details"
+    @click="toggle"
+  >
+    <div
+      v-for="branch, idx of model.depth"
+      :key="`${branch}-${idx}`"
+      class="branch"
+      :class="{ 'branch-parent': branch }"
+    ></div>
+
+    <div v-once class="summary">
       <p :title="model.name">
         <span>
           {{ model.name }}
@@ -69,54 +89,33 @@ const parentAnchor = `--${useId()}`;
           ></path>
         </g>
       </svg>
-    </summary>
-    <div
-      v-memo="[model.children.length]"
-      class="children"
-      :style="{ 'anchor-name': props.lastChildAnchor }"
-    >
-      <div class="branch" :style="{ 'position-anchor': parentAnchor }"></div>
-
-      <SidebarStep
-        v-for="idx of model.children.slice(0, model.children.length - 1)"
-        :key="props.array[idx]!.id"
-        v-model="props.array[idx]!"
-        :array="props.array"
-        :descendants="props.descendants"
-        :index="idx"
-      />
-      <SidebarStep
-        v-model="props.array[model.children.at(-1)!]!"
-        :array="props.array"
-        :descendants="props.descendants"
-        :index="model.children.at(-1)!"
-        :last-child-anchor="parentAnchor"
-      />
     </div>
-  </details>
+  </div>
 </template>
 
 <style scoped>
 .details {
   width: stretch;
 
-  &[open] > .summary > .icon {
+  &.open > .summary > .icon {
     rotate: 180deg;
   }
 }
 
-.children {
-  padding-left: 1rem;
+.branch {
+  width: 1rem;
   position: relative;
+  height: 40px;
+  float: left;
 
-  > .branch {
-    display: block;
+  &.branch-parent::before {
+    content: "";
     position: absolute;
     top: -21px;
     left: -0.5rem;
-    box-sizing: border-box;
+    display: block;
+    height: 40px;
     border-left: 2px solid var(--secondary-color);
-    height: calc(100% - anchor-size(height, 0px));
   }
 }
 
@@ -128,9 +127,9 @@ const parentAnchor = `--${useId()}`;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
   border-bottom: 0.125rem solid var(--secondary-color);
   box-sizing: border-box;
+  position: relative;
 
   height: 40px;
 
@@ -147,9 +146,11 @@ const parentAnchor = `--${useId()}`;
 
   > p {
     white-space: nowrap;
-    overflow-x: hidden;
     text-overflow: ellipsis;
+    overflow-x: hidden;
     margin: 0;
+    text-align: start;
+    flex-grow: 1;
   }
 
   > .icon {
