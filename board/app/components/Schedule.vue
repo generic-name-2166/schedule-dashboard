@@ -11,7 +11,6 @@ await store.init();
 <template>
   <div
     v-if="store.currentDate"
-    v-memo="[store.currentDate]"
     class="gantt-chart"
   >
     <Sidebar
