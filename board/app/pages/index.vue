@@ -4,6 +4,18 @@ import DataDate from "~/components/DataDate.vue";
 import KebabMenu from "~/components/menu/KebabMenu.vue";
 import KebabMenuLink from "~/components/menu/KebabMenuLink.vue";
 import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
+import { useScheduleStore } from "~/stores/schedule";
+import { useNotifier } from "~/stores/notifier";
+
+const store = useScheduleStore();
+const notifier = useNotifier();
+
+async function remove(): Promise<void> {
+  const result = await store.remove();
+  if (result) {
+    notifier.addMessage(result, "error");
+  }
+}
 </script>
 
 <template>
@@ -14,7 +26,7 @@ import KebabMenuButton from "~/components/menu/KebabMenuButton.vue";
       <KebabMenu>
         <KebabMenuLink to="admin">Создать</KebabMenuLink>
         <KebabMenuLink :to="`admin?edit=`">Редактировать</KebabMenuLink>
-        <KebabMenuButton>Удалить</KebabMenuButton>
+        <KebabMenuButton @click="remove">Удалить</KebabMenuButton>
       </KebabMenu>
     </div>
   </div>

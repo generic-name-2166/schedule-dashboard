@@ -228,6 +228,31 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     return sendGraphQL(operations, file);
   }
 
+  const remove = async (): Promise<string | undefined> => {
+    const date = currentDate.value!;
+    const query = `
+      mutation DeleteScheduleObjects($date: DateTime!) {
+        deleteScheduleObjects(date: $date)
+      }
+    `;
+    const operations = {
+      query,
+      variables: { date },
+    };
+    const res = await fetch("/graphql", {
+      method: "POST",
+      body: JSON.stringify({ operations }),
+      // https://stackoverflow.com/a/76686111
+      headers: {
+        "GraphQL-preflight": "1",
+        "Content-Type": "application/json",
+      },
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const result: { errors?: { message: string }[] } = await res.json();
+    return result.errors?.[0]?.message;
+  };
+
   return {
     dates,
     currentDate,
@@ -235,6 +260,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     init,
     create,
     edit,
+    remove, 
     changeDate,
   };
 });

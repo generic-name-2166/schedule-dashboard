@@ -152,13 +152,12 @@ public static class Mutation
         return true;
     }
 
-    public static async Task<bool> EditScheduleObjects(DateTime date, IFile file)
+    private static void DeleteObjectsForDate(
+        SqliteConnection db,
+        SqliteTransaction tx,
+        long dateSeconds
+    )
     {
-        long dateSeconds = DateCommon.DateToSeconds(date);
-
-        using SqliteConnection db = InitializeDatabase();
-        using SqliteTransaction tx = db.BeginTransaction();
-
         string stmt = """
                 DELETE FROM schedule WHERE date_s = @DateSeconds
             """;
@@ -170,8 +169,28 @@ public static class Mutation
             IError error = ErrorBuilder.New().SetMessage("Данных на дату не существует").Build();
             throw new GraphQLException(error);
         }
+    }
+
+    public static async Task<bool> EditScheduleObjects(DateTime date, IFile file)
+    {
+        long dateSeconds = DateCommon.DateToSeconds(date);
+
+        using SqliteConnection db = InitializeDatabase();
+        using SqliteTransaction tx = db.BeginTransaction();
+
+        DeleteObjectsForDate(db, tx, dateSeconds);
 
         await InsertData(db, tx, dateSeconds, file);
+        return true;
+    }
+
+    public static bool DeleteScheduleObjects(DateTime date)
+    {
+        long dateSeconds = DateCommon.DateToSeconds(date);
+
+        using SqliteConnection db = InitializeDatabase();
+        using SqliteTransaction tx = db.BeginTransaction();
+        DeleteObjectsForDate(db, tx, dateSeconds);
         return true;
     }
 }
