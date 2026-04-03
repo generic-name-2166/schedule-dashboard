@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, useTemplateRef, onMounted } from "vue";
-import type { ScheduleNode } from "../stores/schedule.ts";
+import { computed, useTemplateRef, onMounted, watch } from "vue";
+import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
 import TimelineBar from "./TimelineBar.vue";
+import { useVirtualizer } from "@tanstack/vue-virtual";
 
 const TIMELINE_START: Date = new Date("2021-01-01");
 const TIMELINE_END: Date = new Date("2029-01-01");
@@ -15,6 +16,21 @@ const timeline = useTemplateRef<HTMLDivElement>("timeline");
 const props = defineProps<{
   nodes: ScheduleNode[];
 }>();
+
+const store = useScheduleStore();
+
+const rowVirtualizer = useVirtualizer({
+  count: props.nodes.length,
+  getScrollElement: () => timeline.value!,
+  estimateSize: () => 40,
+  overscan: 50,
+});
+
+const scroll = () => (store.scrollTop = timeline.value!.scrollTop);
+watch(
+  () => store.scrollTop,
+  (top: number) => (timeline.value!.scrollTop = top),
+);
 
 function calculateDays(start?: Date, end?: Date): number {
   if (!start || !end) {
@@ -100,7 +116,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="timeline" class="timeline">
+  <div ref="timeline" class="timeline" @scroll.passive="scroll">
     <div>
       <div
         v-once
@@ -130,15 +146,17 @@ onMounted(() => {
 
       <ul class="nodes">
         <li
-          v-for="node of props.nodes"
-          :key="node.id"
-          v-memo="[node.visible.value]"
+          v-for="{ key, index, start } of rowVirtualizer.getVirtualItems()"
+          :key="key.toString()"
         >
           <TimelineBar
-            :visible="node.visible.value"
-            :days="calculateDays(node.start, node.end)"
-            :left="calculateOffset(node.start)"
-            :width="calculateWidth(node.start, node.end)"
+            :visible="props.nodes[index]!.visible.value"
+            :days="calculateDays(props.nodes[index]!.start, props.nodes[index]!.end)"
+            :left="calculateOffset(props.nodes[index]!.start)"
+            :width="calculateWidth(props.nodes[index]!.start, props.nodes[index]!.end)"
+            :start="start"
+            :virtualizer="rowVirtualizer"
+            :index="index"
           />
         </li>
       </ul>
@@ -154,6 +172,7 @@ onMounted(() => {
   background-color: var(--secondary-background);
   border-radius: 1rem;
   padding-inline: 0.5rem;
+  height: 300px;
 
   > div {
     width: 2000px;

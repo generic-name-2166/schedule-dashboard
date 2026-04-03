@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { Virtualizer } from '@tanstack/vue-virtual';
+import { watch } from 'vue';
+
 const props = defineProps<{
   visible: boolean;
   days: number;
@@ -7,6 +10,9 @@ const props = defineProps<{
     percentage: string;
     type: "small" | "big";
   };
+  start: number;
+  virtualizer: Virtualizer<HTMLDivElement, Element>;
+  index: number;
 }>();
 
 const formatter = new Intl.NumberFormat("ru-RU", {
@@ -14,29 +20,42 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   unit: "day",
   unitDisplay: "long",
 });
+
+watch(() => props.visible, (visible) => {
+  props.virtualizer.resizeItem(props.index, visible ? 40 : 0);
+});
 </script>
 
 <template>
-  <div v-show="props.visible" class="bar-wrapper">
-    <p
-      v-if="props.days"
-      v-once
-      class="bar"
-      :style="{
-        left: props.left,
-        width: props.width.percentage,
-      }"
-    >
-      <span>
-        <span :class="{ 'bar-outside': props.width.type === 'small' }">
-          {{ formatter.format(props.days) }}
+  <div class="bar-offset" :style="{ top: `${props.start}px` }">
+    <div v-show="props.visible" class="bar-wrapper">
+      <p
+        v-if="props.days"
+        v-once
+        class="bar"
+        :style="{
+          left: props.left,
+          width: props.width.percentage,
+        }"
+      >
+        <span>
+          <span :class="{ 'bar-outside': props.width.type === 'small' }">
+            {{ formatter.format(props.days) }}
+          </span>
         </span>
-      </span>
-    </p>
+      </p>
+    </div>
   </div>
 </template>
 
 <style lang="css" scoped>
+.bar-offset {
+  position: absolute;
+  left: 0;
+  transform: translateY(60px);
+  width: stretch;
+}
+
 .bar-wrapper {
   display: block;
   position: relative;

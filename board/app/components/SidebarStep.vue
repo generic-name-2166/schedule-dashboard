@@ -35,7 +35,7 @@ const toggle = (): void => {
   <div
     v-if="props.visible && model.children.length === 0"
     class="details"
-    :style="{ top: `${start}px` }"
+    :style="{ top: `${props.start}px` }"
   >
     <div
       v-for="(branch, idx) of model.depth"
@@ -57,7 +57,7 @@ const toggle = (): void => {
     v-else-if="props.visible"
     :class="{ open: props.open }"
     class="details"
-    :style="{ top: `${start}px` }"
+    :style="{ top: `${props.start}px` }"
     @click="toggle"
   >
     <div
