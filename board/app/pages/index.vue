@@ -37,6 +37,11 @@ async function remove(): Promise<void> {
 .heading {
   display: flex;
   justify-content: space-between;
+  height: 4rem;
+
+  > h1 {
+    margin-block: 1rem;
+  }
 
   > div {
     display: flex;

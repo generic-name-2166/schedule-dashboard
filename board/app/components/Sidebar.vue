@@ -48,8 +48,11 @@ watch(
 
 <style lang="css" scoped>
 .sidebar {
-  height: 300px;
+  height: 100%;
   position: relative;
-  overflow-y: auto;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  scrollbar-gutter: stable; 
+  grid-row: span 2;
 }
 </style>

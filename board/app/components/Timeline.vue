@@ -168,11 +168,12 @@ onMounted(() => {
 .timeline {
   overflow-x: scroll;
   scrollbar-color: var(--primary-background) var(--secondary-background);
+  scrollbar-gutter: stable; 
   grid-row: span 2;
   background-color: var(--secondary-background);
   border-radius: 1rem;
   padding-inline: 0.5rem;
-  height: 300px;
+  height: stretch;
 
   > div {
     width: 2000px;

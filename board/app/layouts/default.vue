@@ -16,6 +16,7 @@ import Notifier from "~/components/Notifier.vue";
   display: flex;
   justify-content: center;
   width: stretch;
+  height: 100vh;
 }
 
 .content {

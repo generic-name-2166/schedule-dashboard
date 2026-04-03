@@ -9,7 +9,7 @@ await store.init();
 </script>
 
 <template>
-  <div v-if="store.currentDate" class="gantt-chart">
+  <div v-if="store.currentDate" :key="store.currentDate.valueOf()" class="gantt-chart">
     <Sidebar
       :nodes="store.treelike.nodes"
       :roots="store.treelike.roots"
@@ -25,6 +25,7 @@ await store.init();
   display: grid;
   grid-template-columns: minmax(0, 1fr) 2fr;
   gap: 1rem;
+  height: calc(100% - 4rem);
 }
 
 .missing-data {
