@@ -52,7 +52,7 @@ watch(
   position: relative;
   overflow-y: scroll;
   scrollbar-width: none;
-  scrollbar-gutter: stable; 
+  scrollbar-gutter: stable;
   grid-row: span 2;
 }
 </style>

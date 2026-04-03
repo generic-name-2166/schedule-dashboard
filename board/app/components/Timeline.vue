@@ -121,7 +121,10 @@ onMounted(() => {
       <div
         v-once
         class="today-line"
-        :style="{ left: calculateOffset(new Date()) }"
+        :style="{
+          left: calculateOffset(new Date()),
+          height: `${rowVirtualizer.getTotalSize()}px`,
+        }"
       ></div>
 
       <div v-once class="timeline-header">
@@ -151,9 +154,13 @@ onMounted(() => {
         >
           <TimelineBar
             :visible="props.nodes[index]!.visible.value"
-            :days="calculateDays(props.nodes[index]!.start, props.nodes[index]!.end)"
+            :days="
+              calculateDays(props.nodes[index]!.start, props.nodes[index]!.end)
+            "
             :left="calculateOffset(props.nodes[index]!.start)"
-            :width="calculateWidth(props.nodes[index]!.start, props.nodes[index]!.end)"
+            :width="
+              calculateWidth(props.nodes[index]!.start, props.nodes[index]!.end)
+            "
             :start="start"
             :virtualizer="rowVirtualizer"
             :index="index"
@@ -168,7 +175,7 @@ onMounted(() => {
 .timeline {
   overflow-x: scroll;
   scrollbar-color: var(--primary-background) var(--secondary-background);
-  scrollbar-gutter: stable; 
+  scrollbar-gutter: stable;
   grid-row: span 2;
   background-color: var(--secondary-background);
   border-radius: 1rem;
@@ -184,7 +191,7 @@ onMounted(() => {
       position: absolute;
       top: 0;
       bottom: 0;
-      height: auto;
+      height: stretch;
       background-color: var(--secondary-color);
     }
   }

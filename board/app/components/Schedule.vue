@@ -9,7 +9,11 @@ await store.init();
 </script>
 
 <template>
-  <div v-if="store.currentDate" :key="store.currentDate.valueOf()" class="gantt-chart">
+  <div
+    v-if="store.currentDate"
+    :key="store.currentDate.valueOf()"
+    class="gantt-chart"
+  >
     <Sidebar
       :nodes="store.treelike.nodes"
       :roots="store.treelike.roots"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Virtualizer } from '@tanstack/vue-virtual';
-import { watch } from 'vue';
+import type { Virtualizer } from "@tanstack/vue-virtual";
+import { watch } from "vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -21,9 +21,12 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   unitDisplay: "long",
 });
 
-watch(() => props.visible, (visible) => {
-  props.virtualizer.resizeItem(props.index, visible ? 40 : 0);
-});
+watch(
+  () => props.visible,
+  (visible) => {
+    props.virtualizer.resizeItem(props.index, visible ? 40 : 0);
+  },
+);
 </script>
 
 <template>
