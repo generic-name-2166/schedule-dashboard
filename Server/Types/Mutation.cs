@@ -119,8 +119,6 @@ public static class Mutation
                     insertCommand.Parameters.AddWithValue("@End", DBNull.Value);
                 insertCommand.ExecuteReader();
             }
-
-            tx.Commit();
         }
         catch (Exception ex)
         {
@@ -146,8 +144,8 @@ public static class Mutation
         }
 
         using SqliteTransaction tx = db.BeginTransaction();
-
         await InsertData(db, tx, dateSeconds, file);
+        tx.Commit();
 
         return true;
     }
@@ -179,8 +177,9 @@ public static class Mutation
         using SqliteTransaction tx = db.BeginTransaction();
 
         DeleteObjectsForDate(db, tx, dateSeconds);
-
         await InsertData(db, tx, dateSeconds, file);
+        tx.Commit();
+
         return true;
     }
 
@@ -191,6 +190,8 @@ public static class Mutation
         using SqliteConnection db = InitializeDatabase();
         using SqliteTransaction tx = db.BeginTransaction();
         DeleteObjectsForDate(db, tx, dateSeconds);
+        tx.Commit();
+        
         return true;
     }
 }
