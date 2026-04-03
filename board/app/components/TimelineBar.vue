@@ -31,7 +31,6 @@ watch(() => props.visible, (visible) => {
     <div v-show="props.visible" class="bar-wrapper">
       <p
         v-if="props.days"
-        v-once
         class="bar"
         :style="{
           left: props.left,

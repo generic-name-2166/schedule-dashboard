@@ -67,7 +67,7 @@ const toggle = (): void => {
       :class="{ 'branch-parent': branch }"
     ></div>
 
-    <div v-once class="summary">
+    <div class="summary">
       <p :title="model.name">
         <span>
           {{ model.name }}

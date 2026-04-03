@@ -52,8 +52,8 @@ function calculateWidth(
   start?: Date,
   end?: Date,
 ): { percentage: string; type: "big" | "small" } {
-  if (!start || !end) {
-    return { percentage: "0", type: "big" };
+  if (!start || !end || start > end) {
+    return { percentage: "0", type: "small" };
   }
   const duration: number = end.valueOf() - start.valueOf();
   const percentage = (duration / TOTAL_DURATION) * 100;
