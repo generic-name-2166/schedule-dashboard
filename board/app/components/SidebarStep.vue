@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Virtualizer } from "@tanstack/vue-virtual";
 import type { ScheduleNode } from "../stores/schedule.ts";
 
 const model = defineModel<ScheduleNode>({
@@ -11,27 +12,33 @@ const props = defineProps<{
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
+  virtualizer: Virtualizer<HTMLDivElement, Element>;
   open: boolean;
   visible: boolean;
+  start: number;
 }>();
 
 const toggle = (): void => {
   const open = !props.open;
   const descendantEndIdx: number = props.descendants[props.index]!;
+  const size = open ? 40 : 0;
 
   for (let idx = props.index + 1; idx < descendantEndIdx; idx++) {
     props.array[idx]!.visible.value = open;
+    props.virtualizer.resizeItem(idx, size);
   }
   model.value.open.value = open;
 };
-
-console.log(model.value.depth);
 </script>
 
 <template>
-  <div v-if="props.visible && model.children.length === 0">
+  <div
+    v-if="props.visible && model.children.length === 0"
+    class="details"
+    :style="{ top: `${start}px` }"
+  >
     <div
-      v-for="branch, idx of model.depth"
+      v-for="(branch, idx) of model.depth"
       :key="`${branch}-${idx}`"
       class="branch"
       :class="{ 'branch-parent': branch }"
@@ -50,10 +57,11 @@ console.log(model.value.depth);
     v-else-if="props.visible"
     :class="{ open: props.open }"
     class="details"
+    :style="{ top: `${start}px` }"
     @click="toggle"
   >
     <div
-      v-for="branch, idx of model.depth"
+      v-for="(branch, idx) of model.depth"
       :key="`${branch}-${idx}`"
       class="branch"
       :class="{ 'branch-parent': branch }"
@@ -96,6 +104,9 @@ console.log(model.value.depth);
 <style scoped>
 .details {
   width: stretch;
+  position: absolute;
+  left: 0;
+  transform: translateY(60px);
 
   &.open > .summary > .icon {
     rotate: 180deg;

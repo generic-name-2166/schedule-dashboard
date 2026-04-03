@@ -178,6 +178,8 @@ export const useScheduleStore = defineStore("schedule-store", () => {
   const nodes = ref<ScheduleDTO[]>([]);
   const treelike = computed<ScheduleTreeLike>(() => collectTree(nodes.value));
 
+  const scrollTop = ref(0);
+
   async function fetchCurrent(): Promise<void> {
     const query = `
       query ScheduleObjects($date: DateTime!) {
@@ -279,10 +281,11 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     dates,
     currentDate,
     treelike,
+    scrollTop,
     init,
     create,
     edit,
-    remove, 
+    remove,
     changeDate,
   };
 });
