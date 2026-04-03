@@ -265,7 +265,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     };
     const res = await fetch("/graphql", {
       method: "POST",
-      body: JSON.stringify({ operations }),
+      body: JSON.stringify(operations),
       // https://stackoverflow.com/a/76686111
       headers: {
         "GraphQL-preflight": "1",
