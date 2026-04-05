@@ -106,7 +106,6 @@ const toggle = (): void => {
   width: stretch;
   position: absolute;
   left: 0;
-  transform: translateY(60px);
 
   &.open > .summary > .icon {
     rotate: 180deg;

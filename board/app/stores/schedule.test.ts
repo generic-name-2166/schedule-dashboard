@@ -70,9 +70,9 @@ test("collecting schedule nodes into a tree", () => {
   ];
   const { roots, nodes, descendants } = collectTree(data);
   // Root should be index 0
-  expect(roots.length).toBe(2);
-  expect(roots[0]).toBe(0);
-  expect(roots[1]).toBe(2);
+  expect(roots.size).toBe(2);
+  expect(roots).toContain(0);
+  expect(roots).toContain(2);
 
   expect(nodes.length).toEqual(data.length);
 
