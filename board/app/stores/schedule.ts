@@ -274,7 +274,13 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result: { errors?: { message: string }[] } = await res.json();
-    return result.errors?.[0]?.message;
+    const error = result.errors?.[0]?.message;
+    if (error) {
+      return error;
+    } else {
+      await init();
+      return undefined;
+    }
   };
 
   return {
