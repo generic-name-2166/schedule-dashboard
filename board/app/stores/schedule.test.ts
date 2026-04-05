@@ -1,34 +1,48 @@
 import { expect, test } from "bun:test";
-import { collectTree, type ScheduleDTO } from "./schedule.ts";
+import { collectTree, searchFilter, type ScheduleDTO } from "./schedule.ts";
 
-/* function filterNodes(flatNodes, searchStr) {
-  if (!searchStr) return flatNodes.map((_, i) => i);
-
-  const query = searchStr.toLowerCase();
-  const keepIndices = [];
-  let latestKeptWbs = null;
-
-  for (let i = flatNodes.length - 1; i >= 0; i--) {
-    const node = flatNodes[i];
-    const isMatch = node.name.toLowerCase().includes(query);
-    const isParentOfMatch =
-      latestKeptWbs && latestKeptWbs.startsWith(node.wbsCode + ".");
-
-    if (isMatch || isParentOfMatch) {
-      keepIndices.unshift(i); // Keep original order
-      latestKeptWbs = node.wbsCode;
-    }
-  }
-  return keepIndices;
-} */
+test("filtering by search string", () => {
+  const mockData: ScheduleDTO[] = [
+    {
+      id: 1,
+      wbsCode: "1",
+      name: "Root",
+      level: 0,
+      code: "",
+    },
+    {
+      id: 2,
+      wbsCode: "1.1",
+      name: "Phase A",
+      level: 0,
+      code: "",
+    },
+    {
+      id: 3,
+      wbsCode: "1.1.1",
+      name: "Task Alpha",
+      level: 0,
+      code: "",
+    }, // Match here
+    {
+      id: 4,
+      wbsCode: "1.2",
+      name: "Phase B",
+      level: 0,
+      code: "",
+    }, // Should be filtered
+  ];
+  const result = searchFilter(mockData, "Alpha");
+  expect(result).not.toBe(null);
+  expect(result?.size).toBe(3);
+  expect(result).toContain(0);
+  expect(result).toContain(1);
+  expect(result).toContain(2);
+  expect(result).not.toContain(3);
+});
 
 // --- UNIT TEST ---
-/* const mockData = [
-  { id: 1, wbsCode: "1", name: "Root" },
-  { id: 2, wbsCode: "1.1", name: "Phase A" },
-  { id: 3, wbsCode: "1.1.1", name: "Task Alpha" }, // Match here
-  { id: 4, wbsCode: "1.2", name: "Phase B" }, // Should be filtered
-];
+/* 
 
 const result = filterNodes(mockData, "Alpha");
 console.assert(result.length === 3, "Should keep match and 2 parents");
@@ -85,5 +99,5 @@ test("collecting schedule nodes into a tree", () => {
 
   expect(descendants[0]).toBe(2);
   expect(descendants[1]).toBe(2);
-  expect(descendants[2]).toBe(0);
+  expect(descendants[2]).toBe(3);
 });

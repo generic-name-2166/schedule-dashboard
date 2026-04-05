@@ -149,7 +149,12 @@ onMounted(() => {
 
       <ul class="nodes">
         <li
-          v-for="{ key, index, start } of rowVirtualizer.getVirtualItems()"
+          v-for="{ key, index, start } of rowVirtualizer
+            .getVirtualItems()
+            .filter(
+              ({ index }) =>
+                !store.filteredSearch || store.filteredSearch.has(index),
+            )"
           :key="key.toString()"
         >
           <TimelineBar

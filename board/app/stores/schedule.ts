@@ -121,6 +121,31 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   };
 }
 
+export function searchFilter(
+  nodes: ScheduleDTO[],
+  searchString: string,
+): Set<number> | null {
+  if (!searchString) {
+    return null;
+  }
+
+  const query = searchString.toUpperCase();
+  const keepIndices = new Set<number>();
+  let latestKeptWbs: string | null = null;
+
+  for (let idx = nodes.length - 1; idx >= 0; idx--) {
+    const node = nodes[idx]!;
+    const isMatch = node.name.toUpperCase().includes(query);
+    const isParentOfMatch = latestKeptWbs?.startsWith(node.wbsCode + ".");
+
+    if (isMatch || isParentOfMatch) {
+      keepIndices.add(idx);
+      latestKeptWbs = node.wbsCode;
+    }
+  }
+  return keepIndices;
+}
+
 async function getAvailableDates(): Promise<Date[]> {
   const query = `
     query {
@@ -177,6 +202,11 @@ export const useScheduleStore = defineStore("schedule-store", () => {
 
   const nodes = ref<ScheduleDTO[]>([]);
   const treelike = computed<ScheduleTreeLike>(() => collectTree(nodes.value));
+
+  const searchString = ref("");
+  const filteredSearch = computed<Set<number> | null>(() =>
+    searchFilter(nodes.value, searchString.value),
+  );
 
   const scrollTop = ref(0);
 
@@ -287,6 +317,8 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     dates,
     currentDate,
     treelike,
+    searchString,
+    filteredSearch,
     scrollTop,
     init,
     create,

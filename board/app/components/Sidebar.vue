@@ -31,7 +31,12 @@ watch(
   <div ref="sidebar" class="sidebar" @scroll.passive="scroll">
     <!-- <div style="height: 60px"></div> -->
     <SidebarStep
-      v-for="{ key, index, start } of rowVirtualizer.getVirtualItems()"
+      v-for="{ key, index, start } of rowVirtualizer
+        .getVirtualItems()
+        .filter(
+          ({ index }) =>
+            !store.filteredSearch || store.filteredSearch.has(index),
+        )"
       :key="key.toString()"
       v-model="props.nodes[index]!"
       :sidebar-id="sidebarId"
