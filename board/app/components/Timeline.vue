@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, onMounted, watch } from "vue";
-import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
+import type { ScheduleNode } from "../stores/schedule.ts";
 import TimelineBar from "./TimelineBar.vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
 
@@ -15,21 +15,22 @@ const timeline = useTemplateRef<HTMLDivElement>("timeline");
 
 const props = defineProps<{
   nodes: ScheduleNode[];
+  visible: boolean[];
 }>();
 
-const store = useScheduleStore();
+const scrollTop = defineModel<number>();
 
-const rowVirtualizer = useVirtualizer({
+const virtualizer = useVirtualizer({
   count: props.nodes.length,
   getScrollElement: () => timeline.value!,
   estimateSize: () => 40,
   overscan: 50,
 });
 
-const scroll = () => (store.scrollTop = timeline.value!.scrollTop);
+const scroll = () => (scrollTop.value = timeline.value!.scrollTop);
 watch(
-  () => store.scrollTop,
-  (top: number) => (timeline.value!.scrollTop = top),
+  scrollTop,
+  (top: number | undefined) => (timeline.value!.scrollTop = top ?? 0),
 );
 
 function calculateDays(start?: Date, end?: Date): number {
@@ -102,6 +103,17 @@ const markers = computed<{
   };
 });
 
+watch(
+  () => props.visible,
+  (visible: boolean[]): void => {
+    for (let idx = 0; idx < visible.length; idx++) {
+      const size = visible[idx] ? 40 : 0;
+      virtualizer.value.resizeItem(idx, size);
+    }
+  },
+  { deep: true },
+);
+
 onMounted(() => {
   if (!timeline.value) return;
 
@@ -123,7 +135,7 @@ onMounted(() => {
         class="today-line"
         :style="{
           left: calculateOffset(new Date()),
-          height: `${rowVirtualizer.getTotalSize()}px`,
+          height: `${virtualizer.getTotalSize()}px`,
         }"
       ></div>
 
@@ -149,16 +161,11 @@ onMounted(() => {
 
       <ul class="nodes">
         <li
-          v-for="{ key, index, start } of rowVirtualizer
-            .getVirtualItems()
-            .filter(
-              ({ index }) =>
-                !store.filteredSearch || store.filteredSearch.has(index),
-            )"
+          v-for="{ key, index, start } of virtualizer.getVirtualItems()"
           :key="key.toString()"
         >
           <TimelineBar
-            :visible="props.nodes[index]!.visible.value"
+            :visible="props.visible[index]!"
             :days="
               calculateDays(props.nodes[index]!.start, props.nodes[index]!.end)
             "
@@ -167,8 +174,6 @@ onMounted(() => {
               calculateWidth(props.nodes[index]!.start, props.nodes[index]!.end)
             "
             :start="start"
-            :virtualizer="rowVirtualizer"
-            :index="index"
           />
         </li>
       </ul>

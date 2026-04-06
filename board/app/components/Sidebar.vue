@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useId, useTemplateRef, watch } from "vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
-import { useScheduleStore, type ScheduleNode } from "../stores/schedule.ts";
+import type { ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
 
 const props = defineProps<{
@@ -9,44 +9,52 @@ const props = defineProps<{
   descendants: number[];
 }>();
 
-const store = useScheduleStore();
+const scrollTop = defineModel<number>("scrollTop");
+const visible = defineModel<boolean[]>("visible", { required: true });
+
 const sidebarId = useId();
 const sidebar = useTemplateRef<HTMLDivElement>("sidebar");
 
-const rowVirtualizer = useVirtualizer({
+const virtualizer = useVirtualizer({
   count: props.nodes.length,
   getScrollElement: () => sidebar.value!,
   estimateSize: () => 40,
   overscan: 50,
 });
 
-const scroll = () => (store.scrollTop = sidebar.value!.scrollTop);
+const scroll = () => (scrollTop.value = sidebar.value!.scrollTop);
 watch(
-  () => store.scrollTop,
-  (top: number) => (sidebar.value!.scrollTop = top),
+  scrollTop,
+  (top: number | undefined) => (sidebar.value!.scrollTop = top ?? 0),
+);
+
+watch(
+  visible,
+  (visible: boolean[]): void => {
+    console.log(visible);
+    for (let idx = 0; idx < visible.length; idx++) {
+      const size = visible[idx] ? 40 : 0;
+      virtualizer.value.resizeItem(idx, size);
+    }
+  },
+  { deep: true },
 );
 </script>
 
 <template>
   <div ref="sidebar" class="sidebar" @scroll.passive="scroll">
-    <!-- <div style="height: 60px"></div> -->
     <SidebarStep
-      v-for="{ key, index, start } of rowVirtualizer
-        .getVirtualItems()
-        .filter(
-          ({ index }) =>
-            !store.filteredSearch || store.filteredSearch.has(index),
-        )"
+      v-for="{ key, index, start } of virtualizer.getVirtualItems()"
       :key="key.toString()"
       v-model="props.nodes[index]!"
+      v-model:visible="visible"
       :sidebar-id="sidebarId"
       :array="props.nodes"
       :index="index"
-      :virtualizer="rowVirtualizer"
       :open="props.nodes[index]!.open.value"
-      :visible="props.nodes[index]!.visible.value"
       :descendants="props.descendants"
       :start="start"
+      :show="visible[index]!"
     />
   </div>
 </template>

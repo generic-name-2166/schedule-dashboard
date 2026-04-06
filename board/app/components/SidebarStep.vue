@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Virtualizer } from "@tanstack/vue-virtual";
 import type { ScheduleNode } from "../stores/schedule.ts";
 
 const model = defineModel<ScheduleNode>({
   required: true,
 });
+const visible = defineModel<boolean[]>("visible", { required: true });
 
 const props = defineProps<{
   sidebarId: string;
@@ -12,28 +12,26 @@ const props = defineProps<{
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
-  virtualizer: Virtualizer<HTMLDivElement, Element>;
   open: boolean;
-  visible: boolean;
   start: number;
+  /** simply using visible[index] doesn't do deep reactive updates */
+  show: boolean;
 }>();
 
 const toggle = (): void => {
   const open = !props.open;
   const descendantEndIdx: number = props.descendants[props.index]!;
-  const size = open ? 40 : 0;
 
-  for (let idx = props.index + 1; idx < descendantEndIdx; idx++) {
-    props.array[idx]!.visible.value = open;
-    props.virtualizer.resizeItem(idx, size);
-  }
+  console.log(props.index + 1, descendantEndIdx, open);
+  visible.value = visible.value.fill(open, props.index + 1, descendantEndIdx);
   model.value.open.value = open;
 };
 </script>
 
 <template>
   <div
-    v-if="props.visible && model.children.length === 0"
+    v-if="model.children.length === 0"
+    v-show="visible[props.index]!"
     class="details"
     :style="{ top: `${props.start}px` }"
   >
@@ -54,7 +52,8 @@ const toggle = (): void => {
   </div>
 
   <div
-    v-else-if="props.visible"
+    v-else
+    v-show="visible[props.index]!"
     :class="{ open: props.open }"
     class="details"
     :style="{ top: `${props.start}px` }"

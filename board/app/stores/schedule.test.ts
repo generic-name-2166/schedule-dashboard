@@ -34,23 +34,12 @@ test("filtering by search string", () => {
   ];
   const result = searchFilter(mockData, "Alpha");
   expect(result).not.toBe(null);
-  expect(result?.size).toBe(3);
-  expect(result).toContain(0);
-  expect(result).toContain(1);
-  expect(result).toContain(2);
-  expect(result).not.toContain(3);
+  expect(result.length).toBe(3);
+  expect(result[0]).toBe(true);
+  expect(result[1]).toBe(true);
+  expect(result[2]).toBe(true);
+  expect(result[3]).toBe(false);
 });
-
-// --- UNIT TEST ---
-/* 
-
-const result = filterNodes(mockData, "Alpha");
-console.assert(result.length === 3, "Should keep match and 2 parents");
-console.assert(
-  result.includes(0) && result.includes(1) && result.includes(2),
-  "Indices 0,1,2 should be present",
-);
-console.assert(!result.includes(3), "Phase B should be excluded"); */
 
 test("collecting schedule nodes into a tree", () => {
   const data: ScheduleDTO[] = [

@@ -20,7 +20,6 @@ export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {
   open: Ref<boolean>;
   /** whether the branch should be drawn on the depth level */
   depth: boolean[];
-  visible: Ref<boolean>;
 }
 
 export interface ScheduleTreeLike {
@@ -86,7 +85,6 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       end: maybeParse(value.end),
       depth: new Array<boolean>(depth - rootDepth + 1).fill(true),
       open: ref(true),
-      visible: ref(true),
       children: [],
     } satisfies ScheduleNode;
   }
@@ -124,13 +122,13 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
 export function searchFilter(
   nodes: ScheduleDTO[],
   searchString: string,
-): Set<number> | null {
+): boolean[] {
   if (!searchString) {
-    return null;
+    return new Array<boolean>(nodes.length).fill(true);
   }
 
   const query = searchString.toUpperCase();
-  const keepIndices = new Set<number>();
+  const mask = new Array<boolean>(nodes.length).fill(false);
   let latestKeptWbs: string | null = null;
 
   for (let idx = nodes.length - 1; idx >= 0; idx--) {
@@ -139,11 +137,11 @@ export function searchFilter(
     const isParentOfMatch = latestKeptWbs?.startsWith(node.wbsCode + ".");
 
     if (isMatch || isParentOfMatch) {
-      keepIndices.add(idx);
+      mask[idx] = true;
       latestKeptWbs = node.wbsCode;
     }
   }
-  return keepIndices;
+  return mask;
 }
 
 async function getAvailableDates(): Promise<Date[]> {
@@ -202,15 +200,16 @@ export const useScheduleStore = defineStore("schedule-store", () => {
 
   const nodes = ref<ScheduleDTO[]>([]);
   const treelike = computed<ScheduleTreeLike>(() => collectTree(nodes.value));
+  const visible = ref<boolean[]>([]);
 
   const searchString = ref("");
-  const filteredSearch = computed<Set<number> | null>(() =>
+  const searchFiltered = computed<boolean[]>(() =>
     searchFilter(nodes.value, searchString.value),
   );
 
   const scrollTop = ref(0);
 
-  async function fetchCurrent(): Promise<void> {
+  const fetchCurrent = async (): Promise<void> => {
     const query = `
       query ScheduleObjects($date: DateTime!) {
         scheduleObjects(date: $date) {
@@ -239,22 +238,24 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     const response: { data: { scheduleObjects: ScheduleDTO[] } } = await fetch(
       url,
     ).then((r) => r.json());
-    nodes.value = response.data.scheduleObjects;
-  }
 
-  async function init(): Promise<void> {
+    nodes.value = response.data.scheduleObjects;
+    visible.value = new Array<boolean>(nodes.value.length).fill(true);
+  };
+
+  const init = async (): Promise<void> => {
     dates.value = await getAvailableDates();
     currentDate.value = dates.value.at(-1);
     if (!currentDate.value) {
       return;
     }
     return fetchCurrent();
-  }
+  };
 
-  async function changeDate(date: Date): Promise<void> {
+  const changeDate = (date: Date): Promise<void> => {
     currentDate.value = date;
     return fetchCurrent();
-  }
+  };
 
   async function create(file: File, date: Date): Promise<string | undefined> {
     const operations = {
@@ -317,8 +318,9 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     dates,
     currentDate,
     treelike,
+    visible,
     searchString,
-    filteredSearch,
+    searchFiltered,
     scrollTop,
     init,
     create,

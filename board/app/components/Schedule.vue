@@ -16,8 +16,14 @@ await store.init();
     class="gantt-chart"
   >
     <Search />
-    <Timeline :nodes="store.treelike.nodes" />
+    <Timeline
+      v-model="store.scrollTop"
+      :nodes="store.treelike.nodes"
+      :visible="store.visible"
+    />
     <Sidebar
+      v-model:scroll-top="store.scrollTop"
+      v-model:visible="store.visible"
       :nodes="store.treelike.nodes"
       :roots="store.treelike.roots"
       :descendants="store.treelike.descendants"
@@ -31,7 +37,7 @@ await store.init();
   display: grid;
   grid-template-columns: minmax(0, 1fr) 2fr;
   grid-template-rows: 60px auto;
-  gap: 1rem;
+  column-gap: 1rem;
   height: calc(100% - 4rem);
 }
 

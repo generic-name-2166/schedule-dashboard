@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import type { Virtualizer } from "@tanstack/vue-virtual";
-import { watch } from "vue";
-
 const props = defineProps<{
   visible: boolean;
   days: number;
@@ -11,8 +8,6 @@ const props = defineProps<{
     type: "small" | "big";
   };
   start: number;
-  virtualizer: Virtualizer<HTMLDivElement, Element>;
-  index: number;
 }>();
 
 const formatter = new Intl.NumberFormat("ru-RU", {
@@ -20,13 +15,6 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   unit: "day",
   unitDisplay: "long",
 });
-
-watch(
-  () => props.visible,
-  (visible) => {
-    props.virtualizer.resizeItem(props.index, visible ? 40 : 0);
-  },
-);
 </script>
 
 <template>
