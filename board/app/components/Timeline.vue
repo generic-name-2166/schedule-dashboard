@@ -16,6 +16,7 @@ const timeline = useTemplateRef<HTMLDivElement>("timeline");
 const props = defineProps<{
   nodes: ScheduleNode[];
   visible: boolean[];
+  search: boolean[];
 }>();
 
 const scrollTop = defineModel<number>();
@@ -104,10 +105,10 @@ const markers = computed<{
 });
 
 watch(
-  () => props.visible,
-  (visible: boolean[]): void => {
+  [() => props.visible, () => props.search],
+  ([visible, search]): void => {
     for (let idx = 0; idx < visible.length; idx++) {
-      const size = visible[idx] ? 40 : 0;
+      const size = visible[idx] && search[idx] ? 40 : 0;
       virtualizer.value.resizeItem(idx, size);
     }
   },
@@ -165,7 +166,7 @@ onMounted(() => {
           :key="key.toString()"
         >
           <TimelineBar
-            :visible="props.visible[index]!"
+            :visible="props.visible[index]! && props.search[index]!"
             :days="
               calculateDays(props.nodes[index]!.start, props.nodes[index]!.end)
             "

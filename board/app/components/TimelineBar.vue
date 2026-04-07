@@ -44,6 +44,7 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   left: 0;
   transform: translateY(60px);
   width: stretch;
+  overflow-y: hidden;
 }
 
 .bar-wrapper {

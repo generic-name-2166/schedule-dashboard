@@ -22,7 +22,6 @@ const toggle = (): void => {
   const open = !props.open;
   const descendantEndIdx: number = props.descendants[props.index]!;
 
-  console.log(props.index + 1, descendantEndIdx, open);
   visible.value = visible.value.fill(open, props.index + 1, descendantEndIdx);
   model.value.open.value = open;
 };
@@ -31,9 +30,9 @@ const toggle = (): void => {
 <template>
   <div
     v-if="model.children.length === 0"
-    v-show="visible[props.index]!"
+    v-show="props.show"
     class="details"
-    :style="{ top: `${props.start}px` }"
+    :style="{ top: `${props.start}px`  }"
   >
     <div
       v-for="(branch, idx) of model.depth"
@@ -53,7 +52,7 @@ const toggle = (): void => {
 
   <div
     v-else
-    v-show="visible[props.index]!"
+    v-show="props.show"
     :class="{ open: props.open }"
     class="details"
     :style="{ top: `${props.start}px` }"

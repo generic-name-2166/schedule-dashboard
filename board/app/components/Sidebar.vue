@@ -7,6 +7,7 @@ import SidebarStep from "./SidebarStep.vue";
 const props = defineProps<{
   nodes: ScheduleNode[];
   descendants: number[];
+  search: boolean[];
 }>();
 
 const scrollTop = defineModel<number>("scrollTop");
@@ -29,11 +30,10 @@ watch(
 );
 
 watch(
-  visible,
-  (visible: boolean[]): void => {
-    console.log(visible);
+  [visible, () => props.search],
+  ([visible, search]): void => {
     for (let idx = 0; idx < visible.length; idx++) {
-      const size = visible[idx] ? 40 : 0;
+      const size = visible[idx] && search[idx] ? 40 : 0;
       virtualizer.value.resizeItem(idx, size);
     }
   },
@@ -54,7 +54,7 @@ watch(
       :open="props.nodes[index]!.open.value"
       :descendants="props.descendants"
       :start="start"
-      :show="visible[index]!"
+      :show="visible[index]! && props.search[index]!"
     />
   </div>
 </template>

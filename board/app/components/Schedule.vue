@@ -20,6 +20,7 @@ await store.init();
       v-model="store.scrollTop"
       :nodes="store.treelike.nodes"
       :visible="store.visible"
+      :search="store.searchFiltered"
     />
     <Sidebar
       v-model:scroll-top="store.scrollTop"
@@ -27,6 +28,7 @@ await store.init();
       :nodes="store.treelike.nodes"
       :roots="store.treelike.roots"
       :descendants="store.treelike.descendants"
+      :search="store.searchFiltered"
     />
   </div>
   <p v-else class="missing-data">Данные не предоставлены</p>
