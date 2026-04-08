@@ -26,7 +26,6 @@ await store.init();
       v-model:scroll-top="store.scrollTop"
       v-model:visible="store.visible"
       :nodes="store.treelike.nodes"
-      :roots="store.treelike.roots"
       :descendants="store.treelike.descendants"
       :search="store.searchFiltered"
     />

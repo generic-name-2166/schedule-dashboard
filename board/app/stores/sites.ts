@@ -4,17 +4,17 @@ import type { ScheduleNode } from "./schedule.ts";
 
 interface ConstructionDTO {
   name: string;
-  ksgId: number;
+  index: number;
 }
 
 const MOCK_SITES: ConstructionDTO[] = [
   {
     name: "Мост на ПК 1234",
-    ksgId: 4564,
+    index: 4563,
   },
   {
     name: "Путепровод на ПК 5678",
-    ksgId: 3565,
+    index: 3564,
   },
 ];
 
@@ -30,7 +30,7 @@ export const useSitesStore = defineStore("sites-store", () => {
   const init = (nodes: ScheduleNode[]): void => {
     sites.value = MOCK_SITES.map((site) => {
       // TODO: hardcoded that the ksg ID is just the index in the array minus 1
-      const { wbsCode, start, end } = nodes[site.ksgId - 1]!;
+      const { wbsCode, start, end } = nodes[site.index]!;
       return {
         ...site,
         wbsCode,

@@ -13,6 +13,7 @@ public static class DbCommon
                 name TEXT NOT NULL, 
                 start INTEGER, 
                 end INTEGER, 
+                idx INTEGER NOT NULL, 
                 PRIMARY KEY (date_s, id)
             ) STRICT
         """;

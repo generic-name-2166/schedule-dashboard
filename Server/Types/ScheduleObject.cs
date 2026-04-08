@@ -7,5 +7,7 @@ public record ScheduleObject(
     string Code,
     string Name,
     DateTime? Start,
-    DateTime? End
+    DateTime? End,
+    /// index in the sorted array for a specific date
+    int Index
 );

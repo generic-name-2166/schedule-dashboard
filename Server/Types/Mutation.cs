@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Text;
-using HotChocolate.Resolvers;
 using Microsoft.Data.Sqlite;
 using nietras.SeparatedValues;
 using Server.Common;
@@ -82,7 +80,8 @@ public static class Mutation
                 @Code, 
                 @Name, 
                 @Start, 
-                @End 
+                @End, 
+                @Index 
             )
             """;
 
@@ -92,8 +91,10 @@ public static class Mutation
         {
             using SepReader reader = Sep.Reader().From(stream);
 
+            int idx = -1;
             foreach (var row in reader)
             {
+                ++idx;
                 int id = row["Ид"].Parse<int>();
                 int level = row["Уровень"].Parse<int>();
                 ReadOnlySpan<char> wbsCode = row["Код WBS"].Span;
@@ -117,6 +118,7 @@ public static class Mutation
                     insertCommand.Parameters.AddWithValue("@End", endSeconds);
                 else
                     insertCommand.Parameters.AddWithValue("@End", DBNull.Value);
+                insertCommand.Parameters.AddWithValue("@Index", idx);
                 insertCommand.ExecuteReader();
             }
         }

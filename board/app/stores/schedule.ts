@@ -11,6 +11,8 @@ export interface ScheduleDTO {
   start?: string;
   /** Date */
   end?: string;
+  /** index in the sorted array for a specific date */
+  index: number;
 }
 
 export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {

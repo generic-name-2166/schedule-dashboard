@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 import Sidebar from "~/components/Sidebar.vue";
+import SitesModal from "~/components/SitesModal.vue";
 import Timeline from "~/components/Timeline.vue";
 import { useScheduleStore } from "~/stores/schedule";
 import { useSitesStore } from "~/stores/sites.ts";
@@ -11,6 +12,9 @@ const store = useSitesStore();
 store.init(scheduleStore.treelike.nodes);
 
 const dialogs = useTemplateRef("dialog");
+const search = computed<boolean[]>(() =>
+  new Array<boolean>(scheduleStore.treelike.nodes.length).fill(true),
+);
 </script>
 
 <template>
@@ -23,7 +27,7 @@ const dialogs = useTemplateRef("dialog");
     <p class="cell cell-header">Начало</p>
     <p class="cell cell-header">Окончание</p>
 
-    <template v-for="(node, idx) of store.sites" :key="node.ksgId">
+    <template v-for="(node, idx) of store.sites" :key="node.index">
       <p class="cell">
         <button type="button" @click="() => dialogs?.[idx]?.showModal()">
           {{ node.wbsCode }}
@@ -50,36 +54,13 @@ const dialogs = useTemplateRef("dialog");
       <p class="cell">{{ node.end?.toLocaleDateString("ru-RU") }}</p>
 
       <dialog ref="dialog" class="dialog">
-        <div>
-          <Sidebar
-            :nodes="scheduleStore.treelike.nodes"
-            :descendants="scheduleStore.treelike.descendants"
-            :roots="[node.ksgId - 1]"
-          />
-          <Timeline
-            :nodes="
-              scheduleStore.treelike.nodes.slice(
-                node.ksgId - 1,
-                scheduleStore.treelike.descendants[node.ksgId - 1],
-              )
-            "
-          />
-        </div>
-
-        <button type="button" @click="() => dialogs?.[idx]?.close()">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M6.4 19L5 17.6L10.6 12L5 6.4L6.4 5L12 10.6L17.6 5L19 6.4L13.4 12L19 17.6L17.6 19L12 13.4L6.4 19Z"
-              fill="#ddd"
-            />
-          </svg>
-        </button>
+        <SitesModal
+          :root="node"
+          :nodes="scheduleStore.treelike.nodes"
+          :descendants="scheduleStore.treelike.descendants"
+          :search="search"
+          @close="() => dialogs?.[idx]?.close()"
+        />
       </dialog>
     </template>
   </div>
@@ -138,33 +119,5 @@ const dialogs = useTemplateRef("dialog");
   border: 0.25rem solid var(--secondary-background);
   overflow-y: hidden;
   position: relative;
-
-  > div {
-    width: stretch;
-    height: stretch;
-    overflow-y: scroll;
-    scrollbar-color: var(--primary-background) var(--secondary-background);
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 2fr;
-    gap: 1rem;
-  }
-
-  > button {
-    position: absolute;
-    top: 0.5rem;
-    right: 1.25rem;
-    background-color: transparent;
-    border: none;
-    border-radius: 0.25rem;
-    margin: 0;
-    padding: 0;
-    display: block;
-    height: 24px;
-
-    &:hover {
-      background-color: var(--secondary-background);
-    }
-  }
 }
 </style>

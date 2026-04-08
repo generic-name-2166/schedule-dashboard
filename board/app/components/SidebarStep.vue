@@ -32,7 +32,7 @@ const toggle = (): void => {
     v-if="model.children.length === 0"
     v-show="props.show"
     class="details"
-    :style="{ top: `${props.start}px`  }"
+    :style="{ top: `${props.start}px` }"
   >
     <div
       v-for="(branch, idx) of model.depth"

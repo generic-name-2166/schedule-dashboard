@@ -112,7 +112,7 @@ watch(
       virtualizer.value.resizeItem(idx, size);
     }
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 
 onMounted(() => {
