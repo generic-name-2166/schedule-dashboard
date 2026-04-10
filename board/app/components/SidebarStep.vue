@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ScheduleNode } from "../stores/schedule.ts";
 
-const model = defineModel<ScheduleNode>({
+const open = defineModel<boolean>({
   required: true,
 });
 const visible = defineModel<boolean[]>("visible", { required: true });
@@ -12,39 +12,42 @@ const props = defineProps<{
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
-  open: boolean;
+  name: string;
+  /** TODO: change this to a boolean */
+  children: unknown[];
+  depth: boolean[];
   start: number;
   /** simply using visible[index] doesn't do deep reactive updates */
   show: boolean;
 }>();
 
 const toggle = (): void => {
-  const open = !props.open;
+  const o = !open.value;
   const descendantEndIdx: number = props.descendants[props.index]!;
 
-  visible.value = visible.value.fill(open, props.index + 1, descendantEndIdx);
-  model.value.open.value = open;
+  visible.value = visible.value.fill(o, props.index + 1, descendantEndIdx);
+  open.value = o;
 };
 </script>
 
 <template>
   <div
-    v-if="model.children.length === 0"
+    v-if="props.children.length === 0"
     v-show="props.show"
     class="details"
     :style="{ top: `${props.start}px` }"
   >
     <div
-      v-for="(branch, idx) of model.depth"
+      v-for="(branch, idx) of props.depth"
       :key="`${branch}-${idx}`"
       class="branch"
       :class="{ 'branch-parent': branch }"
     ></div>
 
     <div class="summary">
-      <p class="leaf" :title="model.name">
+      <p class="leaf" :title="props.name">
         <span>
-          {{ model.name }}
+          {{ props.name }}
         </span>
       </p>
     </div>
@@ -53,22 +56,22 @@ const toggle = (): void => {
   <div
     v-else
     v-show="props.show"
-    :class="{ open: props.open }"
+    :class="{ open }"
     class="details"
     :style="{ top: `${props.start}px` }"
     @click="toggle"
   >
     <div
-      v-for="(branch, idx) of model.depth"
+      v-for="(branch, idx) of props.depth"
       :key="`${branch}-${idx}`"
       class="branch"
       :class="{ 'branch-parent': branch }"
     ></div>
 
     <div class="summary">
-      <p :title="model.name">
+      <p :title="props.name">
         <span>
-          {{ model.name }}
+          {{ props.name }}
         </span>
       </p>
 
