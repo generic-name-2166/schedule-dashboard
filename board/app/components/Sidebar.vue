@@ -43,8 +43,8 @@ watch(
 <template>
   <div ref="sidebar" class="sidebar" @scroll.passive="scroll">
     <SidebarStep
-      v-for="{ key, index, start } of virtualizer.getVirtualItems()"
-      :key="key.toString()"
+      v-for="{ index, start } of virtualizer.getVirtualItems()"
+      :key="filtered[index]!.index"
       v-model="filtered[index]!.open.value"
       v-model:visible="visible"
       :sidebar-id="sidebarId"
