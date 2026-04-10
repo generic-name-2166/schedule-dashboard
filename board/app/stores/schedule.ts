@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, ref, type Ref } from "vue";
+import { computed, ref, shallowRef, type Ref } from "vue";
 
 export interface ScheduleDTO {
   id: number;
@@ -202,11 +202,15 @@ export const useScheduleStore = defineStore("schedule-store", () => {
 
   const nodes = ref<ScheduleDTO[]>([]);
   const treelike = computed<ScheduleTreeLike>(() => collectTree(nodes.value));
-  const visible = ref<boolean[]>([]);
-
+  // необходимо shallow потому что от этого зависит filtered от которого зависит filtered[index].index
+  // хоть индекс не изменяется, это приводит к круговой зависимости и фризу
+  const visible = shallowRef<boolean[]>([]);
   const searchString = ref("");
   const searchFiltered = computed<boolean[]>(() =>
     searchFilter(nodes.value, searchString.value),
+  );
+  const filtered = computed<ScheduleNode[]>(() =>
+    treelike.value.nodes.filter((_, idx) => visible.value[idx] && searchFiltered.value[idx])
   );
 
   const scrollTop = ref(0);
@@ -222,6 +226,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
           name
           start
           end
+          index
         }
       }
     `;
@@ -322,7 +327,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     treelike,
     visible,
     searchString,
-    searchFiltered,
+    filtered, 
     scrollTop,
     init,
     create,

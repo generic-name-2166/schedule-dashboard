@@ -14,15 +14,13 @@ const WIDTH_CUTOFF = 5;
 const timeline = useTemplateRef<HTMLDivElement>("timeline");
 
 const props = defineProps<{
-  nodes: ScheduleNode[];
-  visible: boolean[];
-  search: boolean[];
+  filtered: ScheduleNode[];
 }>();
 
 const scrollTop = defineModel<number>();
 
 const virtualizer = useVirtualizer({
-  count: props.nodes.length,
+  count: props.filtered.length,
   getScrollElement: () => timeline.value!,
   estimateSize: () => 40,
   overscan: 50,
@@ -105,14 +103,13 @@ const markers = computed<{
 });
 
 watch(
-  [() => props.visible, () => props.search],
-  ([visible, search]): void => {
-    for (let idx = 0; idx < visible.length; idx++) {
-      const size = visible[idx] && search[idx] ? 40 : 0;
-      virtualizer.value.resizeItem(idx, size);
-    }
+  () => props.filtered,
+  (filtered): void => {
+    virtualizer.value.setOptions({
+      ...virtualizer.value.options,
+      count: filtered.length,
+    });
   },
-  { deep: true, immediate: true },
 );
 
 onMounted(() => {
@@ -166,13 +163,12 @@ onMounted(() => {
           :key="key.toString()"
         >
           <TimelineBar
-            :visible="props.visible[index]! && props.search[index]!"
             :days="
-              calculateDays(props.nodes[index]!.start, props.nodes[index]!.end)
+              calculateDays(props.filtered[index]!.start, props.filtered[index]!.end)
             "
-            :left="calculateOffset(props.nodes[index]!.start)"
+            :left="calculateOffset(props.filtered[index]!.start)"
             :width="
-              calculateWidth(props.nodes[index]!.start, props.nodes[index]!.end)
+              calculateWidth(props.filtered[index]!.start, props.filtered[index]!.end)
             "
             :start="start"
           />

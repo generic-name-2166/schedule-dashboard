@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const props = defineProps<{
-  visible: boolean;
   days: number;
   left: string;
   width: {
@@ -19,7 +18,7 @@ const formatter = new Intl.NumberFormat("ru-RU", {
 
 <template>
   <div class="bar-offset" :style="{ top: `${props.start}px` }">
-    <div v-show="props.visible" class="bar-wrapper">
+    <div class="bar-wrapper">
       <p
         v-if="props.days"
         class="bar"

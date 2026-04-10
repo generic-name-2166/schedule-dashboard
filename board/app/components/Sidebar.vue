@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useId, useTemplateRef, watch } from "vue";
+import { computed, useId, useTemplateRef, watch } from "vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
 import type { ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
 
 const props = defineProps<{
-  nodes: ScheduleNode[];
   descendants: number[];
-  search: boolean[];
+  filtered: ScheduleNode[];
+  search?: string;
 }>();
 
 const scrollTop = defineModel<number>("scrollTop");
@@ -17,7 +17,7 @@ const sidebarId = useId();
 const sidebar = useTemplateRef<HTMLDivElement>("sidebar");
 
 const virtualizer = useVirtualizer({
-  count: props.nodes.length,
+  count: props.filtered.length,
   getScrollElement: () => sidebar.value!,
   estimateSize: () => 40,
   overscan: 50,
@@ -30,14 +30,13 @@ watch(
 );
 
 watch(
-  [visible, () => props.search],
-  ([visible, search]): void => {
-    for (let idx = 0; idx < visible.length; idx++) {
-      const size = visible[idx] && search[idx] ? 40 : 0;
-      virtualizer.value.resizeItem(idx, size);
-    }
+  () => props.filtered,
+  (filtered): void => {
+    virtualizer.value.setOptions({
+      ...virtualizer.value.options,
+      count: filtered.length,
+    });
   },
-  { deep: true, immediate: true },
 );
 </script>
 
@@ -46,17 +45,16 @@ watch(
     <SidebarStep
       v-for="{ key, index, start } of virtualizer.getVirtualItems()"
       :key="key.toString()"
-      v-model="props.nodes[index]!.open.value"
+      v-model="filtered[index]!.open.value"
       v-model:visible="visible"
       :sidebar-id="sidebarId"
-      :array="props.nodes"
-      :index="index"
-      :name="props.nodes[index]!.name"
-      :children="props.nodes[index]!.children"
-      :depth="props.nodes[index]!.depth"
+      :index="filtered[index]!.index"
+      :name="filtered[index]!.name"
+      :children="filtered[index]!.children"
+      :depth="filtered[index]!.depth"
       :descendants="props.descendants"
       :start="start"
-      :show="visible[index]! && props.search[index]!"
+      :search="props.search"
     />
   </div>
 </template>

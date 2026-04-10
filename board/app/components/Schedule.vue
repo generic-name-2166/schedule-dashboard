@@ -29,16 +29,14 @@ await store.init();
     <Search />
     <Timeline
       v-model="store.scrollTop"
-      :nodes="store.treelike.nodes"
-      :visible="store.visible"
-      :search="store.searchFiltered"
+      :filtered="store.filtered"
     />
     <Sidebar
       v-model:scroll-top="store.scrollTop"
       v-model:visible="store.visible"
-      :nodes="store.treelike.nodes"
       :descendants="store.treelike.descendants"
-      :search="store.searchFiltered"
+      :filtered="store.filtered"
+      :search="store.searchString"
     />
   </div>
   <p v-else class="missing-data">Данные не предоставлены</p>

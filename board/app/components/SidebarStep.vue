@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ScheduleNode } from "../stores/schedule.ts";
-
 const open = defineModel<boolean>({
   required: true,
 });
@@ -8,7 +6,6 @@ const visible = defineModel<boolean[]>("visible", { required: true });
 
 const props = defineProps<{
   sidebarId: string;
-  array: ScheduleNode[];
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
@@ -17,15 +14,16 @@ const props = defineProps<{
   children: unknown[];
   depth: boolean[];
   start: number;
-  /** simply using visible[index] doesn't do deep reactive updates */
-  show: boolean;
+  search?: string;
 }>();
+
 
 const toggle = (): void => {
   const o = !open.value;
   const descendantEndIdx: number = props.descendants[props.index]!;
 
-  visible.value = visible.value.fill(o, props.index + 1, descendantEndIdx);
+  // structuredClone потому что fill метод мутирует и поэтому shallowRef не триггерится
+  visible.value = structuredClone(visible.value.fill(o, props.index + 1, descendantEndIdx));
   open.value = o;
 };
 </script>
@@ -33,7 +31,6 @@ const toggle = (): void => {
 <template>
   <div
     v-if="props.children.length === 0"
-    v-show="props.show"
     class="details"
     :style="{ top: `${props.start}px` }"
   >
@@ -55,7 +52,6 @@ const toggle = (): void => {
 
   <div
     v-else
-    v-show="props.show"
     :class="{ open }"
     class="details"
     :style="{ top: `${props.start}px` }"
@@ -70,7 +66,13 @@ const toggle = (): void => {
 
     <div class="summary">
       <p :title="props.name">
-        <span>
+        <span v-if="props.search">
+          <template v-for="segment, idx of props.name.split(props.search)" :key="segment">
+            <span v-if="idx > 0" class="summary-highlight">{{ props.search }}</span>
+            {{ segment }}
+          </template>
+        </span>
+        <span v-else>
           {{ props.name }}
         </span>
       </p>
@@ -174,5 +176,12 @@ const toggle = (): void => {
     list-style: none;
     margin: 0;
   }
+}
+
+.summary-highlight {
+  background-color: var(--highlight-color);
+  color: var(--primary-background);
+  border-radius: 0.25rem;
+  overflow: visible;
 }
 </style>
