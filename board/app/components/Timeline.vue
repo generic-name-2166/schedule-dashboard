@@ -129,11 +129,10 @@ onMounted(() => {
   <div ref="timeline" class="timeline" @scroll.passive="scroll">
     <div>
       <div
-        v-once
         class="today-line"
         :style="{
           left: calculateOffset(new Date()),
-          height: `${virtualizer.getTotalSize()}px`,
+          height: `${virtualizer.getTotalSize() + 60}px`,
         }"
       ></div>
 
