@@ -27,10 +27,7 @@ await store.init();
     class="gantt-chart"
   >
     <Search />
-    <Timeline
-      v-model="store.scrollTop"
-      :filtered="store.filtered"
-    />
+    <Timeline v-model="store.scrollTop" :filtered="store.filtered" />
     <Sidebar
       v-model:scroll-top="store.scrollTop"
       v-model:visible="store.visible"

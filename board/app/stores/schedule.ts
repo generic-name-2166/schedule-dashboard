@@ -210,7 +210,9 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     searchFilter(nodes.value, searchString.value),
   );
   const filtered = computed<ScheduleNode[]>(() =>
-    treelike.value.nodes.filter((_, idx) => visible.value[idx] && searchFiltered.value[idx])
+    treelike.value.nodes.filter(
+      (_, idx) => visible.value[idx] && searchFiltered.value[idx],
+    ),
   );
 
   const scrollTop = ref(0);
@@ -327,7 +329,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
     treelike,
     visible,
     searchString,
-    filtered, 
+    filtered,
     scrollTop,
     init,
     create,

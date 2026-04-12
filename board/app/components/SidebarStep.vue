@@ -17,13 +17,14 @@ const props = defineProps<{
   search?: string;
 }>();
 
-
 const toggle = (): void => {
   const o = !open.value;
   const descendantEndIdx: number = props.descendants[props.index]!;
 
   // structuredClone потому что fill метод мутирует и поэтому shallowRef не триггерится
-  visible.value = structuredClone(visible.value.fill(o, props.index + 1, descendantEndIdx));
+  visible.value = structuredClone(
+    visible.value.fill(o, props.index + 1, descendantEndIdx),
+  );
   open.value = o;
 };
 </script>
@@ -67,8 +68,13 @@ const toggle = (): void => {
     <div class="summary">
       <p :title="props.name">
         <span v-if="props.search">
-          <template v-for="segment, idx of props.name.split(props.search)" :key="segment">
-            <span v-if="idx > 0" class="summary-highlight">{{ props.search }}</span>
+          <template
+            v-for="(segment, idx) of props.name.split(props.search)"
+            :key="segment"
+          >
+            <span v-if="idx > 0" class="summary-highlight">{{
+              props.search
+            }}</span>
             {{ segment }}
           </template>
         </span>

@@ -12,7 +12,13 @@ const id = useId();
 </script>
 
 <template>
-  <input :id="id" v-model="selected" class="tab-input" type="radio" :name="selectName" />
+  <input
+    :id="id"
+    v-model="selected"
+    class="tab-input"
+    type="radio"
+    :name="selectName"
+  />
   <label :for="id" class="tab-option">
     {{ props.name }}
   </label>

@@ -2,14 +2,13 @@
 import { computed, ref, watch } from "vue";
 import type { ScheduleNode } from "~/stores/schedule.ts";
 import type { ConstructionSite } from "~/stores/sites.ts";
+import Sidebar from "./Sidebar.vue";
+import Timeline from "./Timeline.vue";
 
 const props = defineProps<{
   root: ConstructionSite;
-  /** the entire array */
   nodes: ScheduleNode[];
   descendants: number[];
-  /** always true, reuse the same array */
-  search: boolean[];
 }>();
 const emit = defineEmits<{
   close: [];
@@ -24,26 +23,17 @@ watch(
 const modalNodes = computed(() =>
   props.nodes.slice(props.root.index, props.descendants[props.root.index]),
 );
-const modalDescendants = computed(() =>
-  props.descendants.map((idx) => idx - props.root.index),
-);
 </script>
 
 <template>
   <div class="sites-modal">
     <div style="height: 60px"></div>
-    <Timeline
-      v-model="scrollTop"
-      :nodes="modalNodes"
-      :visible="visible"
-      :search="props.search"
-    />
+    <Timeline v-model="scrollTop" :filtered="modalNodes" />
     <Sidebar
       v-model:scroll-top="scrollTop"
       v-model:visible="visible"
-      :nodes="modalNodes"
-      :descendants="modalDescendants"
-      :search="props.search"
+      :filtered="modalNodes"
+      :descendants="props.descendants"
     />
   </div>
 

@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
-import Sidebar from "~/components/Sidebar.vue";
+import { useTemplateRef } from "vue";
 import SitesModal from "~/components/SitesModal.vue";
-import Timeline from "~/components/Timeline.vue";
 import { useScheduleStore } from "~/stores/schedule";
 import { useSitesStore } from "~/stores/sites.ts";
 
@@ -12,9 +10,6 @@ const store = useSitesStore();
 store.init(scheduleStore.treelike.nodes);
 
 const dialogs = useTemplateRef("dialog");
-const search = computed<boolean[]>(() =>
-  new Array<boolean>(scheduleStore.treelike.nodes.length).fill(true),
-);
 </script>
 
 <template>
@@ -58,7 +53,6 @@ const search = computed<boolean[]>(() =>
           :root="node"
           :nodes="scheduleStore.treelike.nodes"
           :descendants="scheduleStore.treelike.descendants"
-          :search="search"
           @close="() => dialogs?.[idx]?.close()"
         />
       </dialog>

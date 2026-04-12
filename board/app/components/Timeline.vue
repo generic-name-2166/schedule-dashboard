@@ -163,11 +163,17 @@ onMounted(() => {
         >
           <TimelineBar
             :days="
-              calculateDays(props.filtered[index]!.start, props.filtered[index]!.end)
+              calculateDays(
+                props.filtered[index]!.start,
+                props.filtered[index]!.end,
+              )
             "
             :left="calculateOffset(props.filtered[index]!.start)"
             :width="
-              calculateWidth(props.filtered[index]!.start, props.filtered[index]!.end)
+              calculateWidth(
+                props.filtered[index]!.start,
+                props.filtered[index]!.end,
+              )
             "
             :start="start"
           />
