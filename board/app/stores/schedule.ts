@@ -108,7 +108,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       descendantNode.depth[childDepthIdx] = false;
     }
   }
-  const lastRoot = Math.max(...roots);
+  const lastRoot = Math.max(...roots, 0);
   for (let idx = lastRoot + 1; idx < nodes.length; ++idx) {
     const descendantNode = nodes[idx]!;
     descendantNode.depth[0] = false;
