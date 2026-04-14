@@ -19,7 +19,11 @@ export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {
   start?: Date;
   end?: Date;
   children: number[];
-  open: Ref<boolean>;
+  /**
+   * иметь мутабельное поле `open` производительнее чем отдельный мутабельный `Array<boolean>`
+   * как `visible` и `search` из-за спагетти реактивности Vue
+   */
+  open: Ref<boolean | null>;
   /** whether the branch should be drawn on the depth level */
   depth: boolean[];
 }
@@ -74,6 +78,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       // utilizing the fact that input array is WBS sorted to backtrack to parent by index
       const parent: ScheduleNode = nodes[open.at(-1)!.index]!;
       parent.children.push(index);
+      parent.open.value = true;
     }
 
     open.push({
@@ -86,7 +91,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       start: maybeParse(value.start),
       end: maybeParse(value.end),
       depth: new Array<boolean>(depth - rootDepth + 1).fill(true),
-      open: ref(true),
+      open: ref(null),
       children: [],
     } satisfies ScheduleNode;
   }

@@ -32,6 +32,7 @@ const modalNodes = computed(() =>
     <Sidebar
       v-model:scroll-top="scrollTop"
       v-model:visible="visible"
+      :nodes="props.nodes"
       :filtered="modalNodes"
       :descendants="props.descendants"
     />

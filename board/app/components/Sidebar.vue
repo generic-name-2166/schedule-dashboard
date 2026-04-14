@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, useId, useTemplateRef, watch } from "vue";
+import { useId, useTemplateRef, watch } from "vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
 import type { ScheduleNode } from "../stores/schedule.ts";
 import SidebarStep from "./SidebarStep.vue";
 
 const props = defineProps<{
+  /** full unfiltered list, used for `open` property on `ScheduleNode` */
+  nodes: ScheduleNode[];
   descendants: number[];
   filtered: ScheduleNode[];
   search?: string;
@@ -47,10 +49,10 @@ watch(
       :key="filtered[index]!.index"
       v-model="filtered[index]!.open.value"
       v-model:visible="visible"
+      :nodes="props.nodes"
       :sidebar-id="sidebarId"
       :index="filtered[index]!.index"
       :name="filtered[index]!.name"
-      :children="filtered[index]!.children"
       :depth="filtered[index]!.depth"
       :descendants="props.descendants"
       :start="start"

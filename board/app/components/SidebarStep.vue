@@ -1,17 +1,19 @@
 <script setup lang="ts">
-const open = defineModel<boolean>({
+import type { ScheduleNode } from "~/stores/schedule.ts";
+
+const open = defineModel<boolean | null>({
   required: true,
 });
 const visible = defineModel<boolean[]>("visible", { required: true });
 
 const props = defineProps<{
+  /** full unfiltered list, used for `open` property on `ScheduleNode` */
+  nodes: ScheduleNode[];
   sidebarId: string;
   descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
   name: string;
-  /** TODO: change this to a boolean */
-  children: unknown[];
   depth: boolean[];
   start: number;
   search?: string;
@@ -21,17 +23,27 @@ const toggle = (): void => {
   const o = !open.value;
   const descendantEndIdx: number = props.descendants[props.index]!;
 
-  // structuredClone потому что fill метод мутирует и поэтому shallowRef не триггерится
-  visible.value = structuredClone(
-    visible.value.fill(o, props.index + 1, descendantEndIdx),
-  );
   open.value = o;
+  // при открытии родителя закрытые дети не открываются (O(n))
+  // `idx < descendantEndIdx` a не `<=` потому что логично что последний потомок - лист без детей
+  for (let idx = props.index; idx < descendantEndIdx; ++idx) {
+    const open: boolean | null = props.nodes[idx]!.open.value;
+    visible.value[idx] = true;
+    if (open === false) {
+      const innerDescendantEndIdx: number = props.descendants[idx]!;
+      visible.value.fill(false, idx + 1, innerDescendantEndIdx);
+      // - 1 потому что ++idx при следующей итерации добавляет 1
+      idx = innerDescendantEndIdx - 1;
+    }
+  }
+  // structuredClone потому что fill метод мутирует и поэтому shallowRef не триггерится
+  visible.value = structuredClone(visible.value);
 };
 </script>
 
 <template>
   <div
-    v-if="props.children.length === 0"
+    v-if="open === null"
     class="details"
     :style="{ top: `${props.start}px` }"
   >
