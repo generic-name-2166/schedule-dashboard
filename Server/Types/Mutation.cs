@@ -122,11 +122,14 @@ public static class Mutation
                 insertCommand.ExecuteReader();
             }
         }
-        catch (Exception ex)
+        catch (InvalidDataException ex)
         {
             Console.WriteLine($"Parsing error: {ex.GetType()} {ex.Message}");
-            // TODO
-            throw;
+            IError error = ErrorBuilder
+                .New()
+                .SetMessage("CSV файл плохо сформирован")
+                .Build();
+            throw new GraphQLException(error);
         }
     }
 
