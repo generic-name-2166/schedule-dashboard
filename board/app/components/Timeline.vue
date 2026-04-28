@@ -176,6 +176,7 @@ onMounted(() => {
               )
             "
             :start="start"
+            :level="props.filtered[index]!.depth.length"
           />
         </li>
       </ul>

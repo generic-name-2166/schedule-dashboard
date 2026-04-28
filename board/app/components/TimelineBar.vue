@@ -7,6 +7,7 @@ const props = defineProps<{
     type: "small" | "big";
   };
   start: number;
+  level: number;
 }>();
 
 const formatter = new Intl.NumberFormat("ru-RU", {
@@ -18,7 +19,7 @@ const formatter = new Intl.NumberFormat("ru-RU", {
 
 <template>
   <div class="bar-offset" :style="{ top: `${props.start}px` }">
-    <div class="bar-wrapper">
+    <div class="bar-wrapper" :style="{ '--level': `${props.level * 5}%` }">
       <p
         v-if="props.days"
         class="bar"
@@ -52,6 +53,7 @@ const formatter = new Intl.NumberFormat("ru-RU", {
   height: 40px;
   box-sizing: border-box;
   border-bottom: 0.125rem solid var(--secondary-color);
+  filter: brightness(calc(120% - var(--level, 0%)));
 }
 
 .bar {
