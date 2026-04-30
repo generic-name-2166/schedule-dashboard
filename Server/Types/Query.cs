@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using Server.Common;
 
 namespace Server.Types;
@@ -6,19 +6,17 @@ namespace Server.Types;
 [QueryType]
 public static class Query
 {
-    public static Book GetBook() => new Book("C# in depth.", new Author("Jon Skeet"));
-
     /// <summary>
     ///
     /// </summary>
-    /// <returns>SqliteConnection that needs to be Disposed</returns>
-    private static SqliteConnection InitializeDatabase()
+    /// <returns>NpgsqlConnection that needs to be Disposed</returns>
+    private static NpgsqlConnection InitializeDatabase()
     {
         try
         {
-            SqliteConnection db = new(DbCommon.CONNECTION_STRING);
+            NpgsqlConnection db = new(DbCommon.CONNECTION_STRING);
             db.Open();
-            SqliteCommand command = new(DbCommon.INIT_STMT, db);
+            NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
             command.ExecuteNonQuery();
             return db;
         }
@@ -31,7 +29,7 @@ public static class Query
 
     public static List<ScheduleObject> GetScheduleObjects(DateTime date)
     {
-        using SqliteConnection db = InitializeDatabase();
+        using NpgsqlConnection db = InitializeDatabase();
         List<ScheduleObject> objects = [];
         string stmt = """
             SELECT 
@@ -46,12 +44,12 @@ public static class Query
             FROM schedule
             WHERE date_s = @DateSeconds
             """;
-        SqliteCommand selectCommand = new(stmt, db);
+        NpgsqlCommand selectCommand = new(stmt, db);
         selectCommand.Parameters.AddWithValue("@DateSeconds", DateCommon.DateToSeconds(date));
 
         try
         {
-            SqliteDataReader query = selectCommand.ExecuteReader();
+            NpgsqlDataReader query = selectCommand.ExecuteReader();
 
             while (query.Read())
             {
@@ -84,14 +82,14 @@ public static class Query
 
     public static List<DateTime> GetAvailableDates()
     {
-        using SqliteConnection db = InitializeDatabase();
+        using NpgsqlConnection db = InitializeDatabase();
         List<DateTime> dates = [];
         string stmt = """
                 SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
             """;
-        SqliteCommand selectCommand = new(stmt, db);
+        NpgsqlCommand selectCommand = new(stmt, db);
 
-        SqliteDataReader query = selectCommand.ExecuteReader();
+        NpgsqlDataReader query = selectCommand.ExecuteReader();
         while (query.Read())
         {
             DateTime date = DateCommon.SecondsToDate(query.GetInt64(0));

@@ -1,6 +1,6 @@
 using System.Globalization;
-using Microsoft.Data.Sqlite;
 using nietras.SeparatedValues;
+using Npgsql;
 using Server.Common;
 
 namespace Server.Types;
@@ -11,14 +11,14 @@ public static class Mutation
     /// <summary>
     ///
     /// </summary>
-    /// <returns>SqliteConnection that needs to be Disposed</returns>
-    private static SqliteConnection InitializeDatabase()
+    /// <returns>NpgsqlConnection that needs to be Disposed</returns>
+    private static NpgsqlConnection InitializeDatabase()
     {
         try
         {
-            SqliteConnection db = new(DbCommon.CONNECTION_STRING);
+            NpgsqlConnection db = new(DbCommon.CONNECTION_STRING);
             db.Open();
-            SqliteCommand command = new(DbCommon.INIT_STMT, db);
+            NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
             command.ExecuteNonQuery();
             return db;
         }
@@ -47,16 +47,16 @@ public static class Mutation
         return DateCommon.DateToSeconds(date);
     }
 
-    private static bool DateExists(SqliteConnection db, long dateSeconds)
+    private static bool DateExists(NpgsqlConnection db, long dateSeconds)
     {
         string stmt = """
                 SELECT EXISTS(
                     SELECT 1 FROM schedule WHERE date_s = @DateSeconds
                 )
             """;
-        SqliteCommand command = new(stmt, db);
+        NpgsqlCommand command = new(stmt, db);
         command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-        SqliteDataReader query = command.ExecuteReader();
+        NpgsqlDataReader query = command.ExecuteReader();
         if (!query.Read())
         {
             return false;
@@ -65,8 +65,8 @@ public static class Mutation
     }
 
     private static async Task InsertData(
-        SqliteConnection db,
-        SqliteTransaction tx,
+        NpgsqlConnection db,
+        NpgsqlTransaction tx,
         long dateSeconds,
         IFile file
     )
@@ -103,7 +103,7 @@ public static class Mutation
                 long? startSeconds = ParseDate(row["Начало"].Span);
                 long? endSeconds = ParseDate(row["Окончание"].Span);
 
-                SqliteCommand insertCommand = new(stmt, db, tx);
+                NpgsqlCommand insertCommand = new(stmt, db, tx);
                 insertCommand.Parameters.AddWithValue("@DateSeconds", dateSeconds);
                 insertCommand.Parameters.AddWithValue("@Id", id);
                 insertCommand.Parameters.AddWithValue("@Level", level);
@@ -137,7 +137,7 @@ public static class Mutation
     {
         long dateSeconds = DateCommon.DateToSeconds(date);
 
-        using SqliteConnection db = InitializeDatabase();
+        using NpgsqlConnection db = InitializeDatabase();
 
         if (DateExists(db, dateSeconds))
         {
@@ -148,7 +148,7 @@ public static class Mutation
             throw new GraphQLException(error);
         }
 
-        using SqliteTransaction tx = db.BeginTransaction();
+        using NpgsqlTransaction tx = db.BeginTransaction();
         await InsertData(db, tx, dateSeconds, file);
         tx.Commit();
 
@@ -156,17 +156,17 @@ public static class Mutation
     }
 
     private static void DeleteObjectsForDate(
-        SqliteConnection db,
-        SqliteTransaction tx,
+        NpgsqlConnection db,
+        NpgsqlTransaction tx,
         long dateSeconds
     )
     {
         string stmt = """
                 DELETE FROM schedule WHERE date_s = @DateSeconds
             """;
-        SqliteCommand command = new(stmt, db, tx);
+        NpgsqlCommand command = new(stmt, db, tx);
         command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-        SqliteDataReader reader = command.ExecuteReader();
+        NpgsqlDataReader reader = command.ExecuteReader();
         if (reader.RecordsAffected <= 0)
         {
             IError error = ErrorBuilder.New().SetMessage("Данных на дату не существует").Build();
@@ -178,8 +178,8 @@ public static class Mutation
     {
         long dateSeconds = DateCommon.DateToSeconds(date);
 
-        using SqliteConnection db = InitializeDatabase();
-        using SqliteTransaction tx = db.BeginTransaction();
+        using NpgsqlConnection db = InitializeDatabase();
+        using NpgsqlTransaction tx = db.BeginTransaction();
 
         DeleteObjectsForDate(db, tx, dateSeconds);
         await InsertData(db, tx, dateSeconds, file);
@@ -192,8 +192,8 @@ public static class Mutation
     {
         long dateSeconds = DateCommon.DateToSeconds(date);
 
-        using SqliteConnection db = InitializeDatabase();
-        using SqliteTransaction tx = db.BeginTransaction();
+        using NpgsqlConnection db = InitializeDatabase();
+        using NpgsqlTransaction tx = db.BeginTransaction();
         DeleteObjectsForDate(db, tx, dateSeconds);
         tx.Commit();
         

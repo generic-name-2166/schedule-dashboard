@@ -2,7 +2,8 @@ namespace Server.Common;
 
 public static class DbCommon
 {
-    public const string CONNECTION_STRING = "Filename=./db.sqlite";
+    // public const string CONNECTION_STRING = "Filename=./db.sqlite";
+    public const string CONNECTION_STRING = "Host=localhost;Username=postgres;Password=postgres;Database=schedule";
     public const string INIT_STMT = """
             CREATE TABLE IF NOT EXISTS schedule (
                 date_s INTEGER NOT NULL, 
