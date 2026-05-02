@@ -18,7 +18,7 @@ public static class Mutation
         {
             NpgsqlConnection db = new(DbCommon.CONNECTION_STRING);
             db.Open();
-            NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
+            using NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
             command.ExecuteNonQuery();
             return db;
         }
@@ -54,9 +54,9 @@ public static class Mutation
                     SELECT 1 FROM schedule WHERE date_s = @DateSeconds
                 )
             """;
-        NpgsqlCommand command = new(stmt, db);
+        using NpgsqlCommand command = new(stmt, db);
         command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-        NpgsqlDataReader query = command.ExecuteReader();
+        using NpgsqlDataReader query = command.ExecuteReader();
         if (!query.Read())
         {
             return false;
@@ -103,7 +103,7 @@ public static class Mutation
                 long? startSeconds = ParseDate(row["Начало"].Span);
                 long? endSeconds = ParseDate(row["Окончание"].Span);
 
-                NpgsqlCommand insertCommand = new(stmt, db, tx);
+                using NpgsqlCommand insertCommand = new(stmt, db, tx);
                 insertCommand.Parameters.AddWithValue("@DateSeconds", dateSeconds);
                 insertCommand.Parameters.AddWithValue("@Id", id);
                 insertCommand.Parameters.AddWithValue("@Level", level);
@@ -119,7 +119,7 @@ public static class Mutation
                 else
                     insertCommand.Parameters.AddWithValue("@End", DBNull.Value);
                 insertCommand.Parameters.AddWithValue("@Index", idx);
-                insertCommand.ExecuteReader();
+                insertCommand.ExecuteNonQuery();
             }
         }
         catch (InvalidDataException ex)
@@ -164,9 +164,9 @@ public static class Mutation
         string stmt = """
                 DELETE FROM schedule WHERE date_s = @DateSeconds
             """;
-        NpgsqlCommand command = new(stmt, db, tx);
+        using NpgsqlCommand command = new(stmt, db, tx);
         command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-        NpgsqlDataReader reader = command.ExecuteReader();
+        using NpgsqlDataReader reader = command.ExecuteReader();
         if (reader.RecordsAffected <= 0)
         {
             IError error = ErrorBuilder.New().SetMessage("Данных на дату не существует").Build();

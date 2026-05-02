@@ -12,10 +12,10 @@ public static class DbCommon
                 wbs_code TEXT NOT NULL, 
                 code TEXT NOT NULL, 
                 name TEXT NOT NULL, 
-                start INTEGER, 
-                end INTEGER, 
+                start_s INTEGER, 
+                end_s INTEGER, 
                 idx INTEGER NOT NULL, 
                 PRIMARY KEY (date_s, id)
-            ) STRICT
+            )
         """;
 }

@@ -167,10 +167,10 @@ async function getAvailableDates(): Promise<Date[]> {
     : `http://localhost:5095/graphql?${params}`;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const response: { data: { availableDates: string[] } } = await fetch(
+  const response: { data?: { availableDates: string[] }, errors?: { message: string }[] } = await fetch(
     url,
   ).then((r) => r.json());
-  return response.data.availableDates.map((date) => new Date(date));
+  return response.data?.availableDates.map((date) => new Date(date)) ?? [];
 }
 
 async function sendGraphQL(

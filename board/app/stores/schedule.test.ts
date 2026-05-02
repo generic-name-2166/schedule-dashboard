@@ -9,6 +9,7 @@ test("filtering by search string", () => {
       name: "Root",
       level: 0,
       code: "",
+      index: 1,
     },
     {
       id: 2,
@@ -16,6 +17,7 @@ test("filtering by search string", () => {
       name: "Phase A",
       level: 0,
       code: "",
+      index: 1,
     },
     {
       id: 3,
@@ -23,6 +25,7 @@ test("filtering by search string", () => {
       name: "Task Alpha",
       level: 0,
       code: "",
+      index: 1,
     }, // Match here
     {
       id: 4,
@@ -30,6 +33,7 @@ test("filtering by search string", () => {
       name: "Phase B",
       level: 0,
       code: "",
+      index: 1,
     }, // Should be filtered
   ];
   const result = searchFilter(mockData, "Alpha");
@@ -51,6 +55,7 @@ test("collecting schedule nodes into a tree", () => {
       code: "",
       start: "",
       end: "",
+      index: 0,
     },
     {
       level: 5,
@@ -60,6 +65,7 @@ test("collecting schedule nodes into a tree", () => {
       code: "",
       start: "",
       end: "",
+      index: 1,
     },
     {
       level: 4,
@@ -69,6 +75,7 @@ test("collecting schedule nodes into a tree", () => {
       code: "",
       start: "",
       end: "",
+      index: 2,
     },
   ];
   const { roots, nodes, descendants } = collectTree(data);

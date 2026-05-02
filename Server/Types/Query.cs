@@ -38,18 +38,18 @@ public static class Query
                 wbs_code,
                 code,
                 name,
-                start,
-                end, 
+                start_s,
+                end_s, 
                 idx
             FROM schedule
             WHERE date_s = @DateSeconds
             """;
-        NpgsqlCommand selectCommand = new(stmt, db);
+        using NpgsqlCommand selectCommand = new(stmt, db);
         selectCommand.Parameters.AddWithValue("@DateSeconds", DateCommon.DateToSeconds(date));
 
         try
         {
-            NpgsqlDataReader query = selectCommand.ExecuteReader();
+            using NpgsqlDataReader query = selectCommand.ExecuteReader();
 
             while (query.Read())
             {
@@ -87,9 +87,9 @@ public static class Query
         string stmt = """
                 SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
             """;
-        NpgsqlCommand selectCommand = new(stmt, db);
+        using NpgsqlCommand selectCommand = new(stmt, db);
 
-        NpgsqlDataReader query = selectCommand.ExecuteReader();
+        using NpgsqlDataReader query = selectCommand.ExecuteReader();
         while (query.Read())
         {
             DateTime date = DateCommon.SecondsToDate(query.GetInt64(0));
