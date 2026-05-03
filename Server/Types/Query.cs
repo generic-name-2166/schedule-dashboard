@@ -97,4 +97,89 @@ public static class Query
         }
         return dates;
     }
+
+    public static List<ScheduleDiff> GetDateDiff(DateTime oldDate, DateTime newDate)
+    {
+        long newSeconds;
+        long oldSeconds;
+        if (newDate > oldDate)
+        {
+            newSeconds = DateCommon.DateToSeconds(newDate);
+            oldSeconds = DateCommon.DateToSeconds(oldDate);
+        }
+        else
+        {
+            newSeconds = DateCommon.DateToSeconds(oldDate);
+            oldSeconds = DateCommon.DateToSeconds(newDate);
+        }
+        using NpgsqlConnection db = InitializeDatabase();
+        string stmt = """
+            WITH OldSchedule AS (
+                SELECT 
+                    id,
+                    level,
+                    wbs_code,
+                    code,
+                    name,
+                    start_s,
+                    end_s, 
+                    idx
+                FROM schedule
+                WHERE date_s = @OldSeconds
+            ),
+            NewSchedule AS (
+                SELECT 
+                    id,
+                    level,
+                    wbs_code,
+                    code,
+                    name,
+                    start_s,
+                    end_s, 
+                    idx
+                FROM schedule
+                WHERE date_s = @NewSeconds
+            )
+            SELECT 
+                n.id,
+                n.wbs_code,
+                n.name,
+                o.start_s AS old_start,
+                n.start_s AS new_start,
+                o.end_s AS old_end,
+                n.end_s AS new_end
+            FROM NewSchedule AS n
+            INNER JOIN OldSchedule AS o
+                ON n.id = o.id AND (
+                    n.start_s <> o.start_s
+                    OR n.end_s <> o.end_s
+                )
+            ORDER BY n.idx
+            """;
+        // выбирает только объекты у которых начало и конец не NULL
+        using NpgsqlCommand selectCommand = new(stmt, db);
+        selectCommand.Parameters.AddWithValue("@OldSeconds", oldSeconds);
+        selectCommand.Parameters.AddWithValue("@NewSeconds", newSeconds);
+
+        List<ScheduleDiff> diffs = [];
+        using NpgsqlDataReader query = selectCommand.ExecuteReader();
+        while (query.Read())
+        {
+            DateTime oldStart = DateCommon.SecondsToDate(query.GetInt64(3));
+            DateTime newStart = DateCommon.SecondsToDate(query.GetInt64(4));
+            DateTime oldEnd = DateCommon.SecondsToDate(query.GetInt64(5));
+            DateTime newEnd = DateCommon.SecondsToDate(query.GetInt64(6));
+            ScheduleDiff diff = new(
+                query.GetInt32(0),
+                query.GetString(1),
+                query.GetString(2),
+                oldStart,
+                newStart,
+                oldEnd,
+                newEnd
+            );
+            diffs.Add(diff);
+        }
+        return diffs;
+    }
 }

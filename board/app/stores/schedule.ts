@@ -151,7 +151,7 @@ export function searchFilter(
   return mask;
 }
 
-async function getAvailableDates(): Promise<Date[]> {
+export async function getAvailableDates(): Promise<Date[]> {
   const query = `
     query {
       availableDates
@@ -167,9 +167,10 @@ async function getAvailableDates(): Promise<Date[]> {
     : `http://localhost:5095/graphql?${params}`;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const response: { data?: { availableDates: string[] }, errors?: { message: string }[] } = await fetch(
-    url,
-  ).then((r) => r.json());
+  const response: {
+    data?: { availableDates: string[] };
+    errors?: { message: string }[];
+  } = await fetch(url).then((r) => r.json());
   return response.data?.availableDates.map((date) => new Date(date)) ?? [];
 }
 
