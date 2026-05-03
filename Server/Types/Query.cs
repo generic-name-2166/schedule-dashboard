@@ -156,7 +156,6 @@ public static class Query
                 )
             ORDER BY n.idx
             """;
-        // выбирает только объекты у которых начало и конец не NULL
         using NpgsqlCommand selectCommand = new(stmt, db);
         selectCommand.Parameters.AddWithValue("@OldSeconds", oldSeconds);
         selectCommand.Parameters.AddWithValue("@NewSeconds", newSeconds);

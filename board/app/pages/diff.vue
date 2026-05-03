@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import DatePicker from "~/components/DatePicker.vue";
+import DiffSidebar from "~/components/diff/DiffSidebar.vue";
+import DiffTimeline from "~/components/diff/DiffTimeline.vue";
 import { useDiffStore } from "~/stores/diff.ts";
 
 const store = useDiffStore();
@@ -27,29 +29,11 @@ await store.init();
       />
       <button type="submit">Сравнить</button>
     </form>
-    <div class="diff">
-      <div v-for="diff in store.nodes" :key="diff.id" class="diff-row">
-        <p>{{ diff.name }}</p>
-        <div>
-          <span>{{ diff.oldStart.toLocaleDateString("ru-RU") }}</span>
-          <span>{{ diff.oldEnd.toLocaleDateString("ru-RU") }}</span>
-          <span
-            :class="{
-              earlier: diff.newStart < diff.oldStart,
-              later: diff.newStart > diff.oldStart,
-            }"
-            >{{ diff.newStart.toLocaleDateString("ru-RU") }}</span
-          >
-          <span
-            :class="{
-              earlier: diff.newEnd < diff.oldEnd,
-              later: diff.newEnd > diff.oldEnd,
-            }"
-            >{{ diff.newEnd.toLocaleDateString("ru-RU") }}</span
-          >
-        </div>
-      </div>
+    <div v-if="store.nodes.length > 0" class="gantt-chart">
+      <DiffSidebar v-model:scroll-top="store.scrollTop" :diffs="store.nodes" />
+      <DiffTimeline v-model="store.scrollTop" :diffs="store.nodes" />
     </div>
+    <p v-else class="missing-data">Нет данных для сравнения</p>
   </template>
 </template>
 
@@ -57,6 +41,7 @@ await store.init();
 .diff-form {
   display: flex;
   justify-content: space-evenly;
+  margin-bottom: 1rem;
 
   > button {
     background-color: var(--secondary-background);
@@ -67,31 +52,16 @@ await store.init();
   }
 }
 
-.diff {
+.gantt-chart {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2fr;
+  grid-template-rows: auto;
+  column-gap: 1rem;
+  align-items: start;
+}
+
+.missing-data {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.diff-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-
-  > div {
-    flex-grow: 1;
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-}
-
-.earlier {
-  color: var(--highlight-color);
-}
-.later {
-  color: var(--error-color);
+  justify-content: center;
 }
 </style>
