@@ -14,6 +14,8 @@ async function remove(): Promise<void> {
   const result = await store.remove();
   if (result) {
     notifier.addMessage(result, "error");
+  } else {
+    notifier.addMessage("Данные успешно удалены", "info");
   }
 }
 </script>
