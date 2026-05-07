@@ -193,7 +193,7 @@ onMounted(() => {
   background-color: var(--secondary-background);
   border-radius: 1rem;
   padding-inline: 0.5rem;
-  height: stretch;
+  height: 100%;
 
   > div {
     width: 2000px;
@@ -203,8 +203,7 @@ onMounted(() => {
       width: 2px;
       position: absolute;
       top: 0;
-      bottom: 0;
-      height: stretch;
+      height: 100%;
       background-color: var(--secondary-color);
     }
   }
@@ -213,7 +212,7 @@ onMounted(() => {
 .timeline-header {
   height: 60px;
   box-sizing: border-box;
-  width: stretch;
+  width: 100%;
   border-bottom: 0.125rem solid var(--primary-color);
   position: relative;
 }
@@ -221,7 +220,7 @@ onMounted(() => {
 .marker-year {
   position: absolute;
   top: 0;
-  height: stretch;
+  height: 100%;
   display: flex;
   flex-direction: column;
 
@@ -232,7 +231,7 @@ onMounted(() => {
 
   > .marker-line {
     width: 2px;
-    height: stretch;
+    height: 100%;
     background-color: var(--secondary-color);
   }
 }
@@ -240,7 +239,7 @@ onMounted(() => {
 .marker-month {
   position: absolute;
   top: 0;
-  height: stretch;
+  height: 100%;
   display: flex;
   align-items: end;
 
@@ -254,13 +253,16 @@ onMounted(() => {
 .nodes {
   padding: 0;
   margin: 0;
-  width: stretch;
+  width: 100%;
   list-style-type: none;
   display: grid;
   grid-template-columns: 1fr;
 
   > li {
-    display: contents;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
 }
 </style>

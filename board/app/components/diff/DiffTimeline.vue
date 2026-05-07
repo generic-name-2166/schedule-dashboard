@@ -136,10 +136,7 @@ onMounted(() => {
       </div>
 
       <ul class="diff-bars">
-        <li
-          v-for="diff in props.diffs"
-          :key="diff.id"
-        >
+        <li v-for="diff in props.diffs" :key="diff.id">
           <div class="bar-pair">
             <!-- Old duration bar (white) -->
             <div
@@ -158,7 +155,9 @@ onMounted(() => {
                       'small',
                   }"
                 >
-                  {{ formatter.format(calculateDays(diff.oldStart, diff.oldEnd)) }}
+                  {{
+                    formatter.format(calculateDays(diff.oldStart, diff.oldEnd))
+                  }}
                 </span>
               </span>
             </div>
@@ -183,7 +182,9 @@ onMounted(() => {
                       'small',
                   }"
                 >
-                  {{ formatter.format(calculateDays(diff.newStart, diff.newEnd)) }}
+                  {{
+                    formatter.format(calculateDays(diff.newStart, diff.newEnd))
+                  }}
                 </span>
               </span>
             </div>

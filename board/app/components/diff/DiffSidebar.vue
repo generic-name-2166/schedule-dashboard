@@ -9,11 +9,7 @@ const props = defineProps<{
 <template>
   <div class="diff-sidebar">
     <div class="sidebar-header"></div>
-    <div
-      v-for="diff in props.diffs"
-      :key="diff.id"
-      class="diff-name"
-    >
+    <div v-for="diff in props.diffs" :key="diff.id" class="diff-name">
       <span>{{ diff.name }}</span>
     </div>
   </div>

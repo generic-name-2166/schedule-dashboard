@@ -44,7 +44,7 @@ await store.init();
 .gantt-chart {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 2fr;
-  grid-template-rows: 60px auto;
+  grid-template-rows: 60px 1fr;
   column-gap: 1rem;
   height: calc(100% - 4rem - 3rem);
 }

@@ -19,7 +19,7 @@ const formatter = new Intl.NumberFormat("ru-RU", {
 
 <template>
   <div class="bar-offset" :style="{ top: `${props.start}px` }">
-    <div class="bar-wrapper" :style="{ '--level': `${props.level * 5}%` }">
+    <div class="bar-wrapper" :style="{ '--level': `${props.level * 7.5}%` }">
       <p
         v-if="props.days"
         class="bar"
@@ -69,8 +69,8 @@ const formatter = new Intl.NumberFormat("ru-RU", {
 
   > span {
     position: relative;
-    width: stretch;
-    height: stretch;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
