@@ -10,14 +10,14 @@ public static class Query
     ///
     /// </summary>
     /// <returns>NpgsqlConnection that needs to be Disposed</returns>
-    private static NpgsqlConnection InitializeDatabase()
+    private static async Task<NpgsqlConnection> InitializeDatabase()
     {
         try
         {
             NpgsqlConnection db = new(DbCommon.CONNECTION_STRING);
-            db.Open();
-            NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
-            command.ExecuteNonQuery();
+            await db.OpenAsync();
+            await using NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
+            await command.ExecuteNonQueryAsync();
             return db;
         }
         catch (Exception ex)
@@ -27,9 +27,9 @@ public static class Query
         }
     }
 
-    public static List<ScheduleObject> GetScheduleObjects(DateTime date)
+    public static async Task<List<ScheduleObject>> GetScheduleObjects(DateTime date)
     {
-        using NpgsqlConnection db = InitializeDatabase();
+        await using NpgsqlConnection db = await InitializeDatabase();
         List<ScheduleObject> objects = [];
         string stmt = """
             SELECT 
@@ -44,14 +44,14 @@ public static class Query
             FROM schedule
             WHERE date_s = @DateSeconds
             """;
-        using NpgsqlCommand selectCommand = new(stmt, db);
+        await using NpgsqlCommand selectCommand = new(stmt, db);
         selectCommand.Parameters.AddWithValue("@DateSeconds", DateCommon.DateToSeconds(date));
 
         try
         {
-            using NpgsqlDataReader query = selectCommand.ExecuteReader();
+            await using NpgsqlDataReader query = await selectCommand.ExecuteReaderAsync();
 
-            while (query.Read())
+            while (await query.ReadAsync())
             {
                 DateTime? start = query.IsDBNull(5)
                     ? null
@@ -80,17 +80,17 @@ public static class Query
         }
     }
 
-    public static List<DateTime> GetAvailableDates()
+    public static async Task<List<DateTime>> GetAvailableDates()
     {
-        using NpgsqlConnection db = InitializeDatabase();
+        await using NpgsqlConnection db = await InitializeDatabase();
         List<DateTime> dates = [];
         string stmt = """
                 SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
             """;
-        using NpgsqlCommand selectCommand = new(stmt, db);
+        await using NpgsqlCommand selectCommand = new(stmt, db);
 
-        using NpgsqlDataReader query = selectCommand.ExecuteReader();
-        while (query.Read())
+        await using NpgsqlDataReader query = await selectCommand.ExecuteReaderAsync();
+        while (await query.ReadAsync())
         {
             DateTime date = DateCommon.SecondsToDate(query.GetInt64(0));
             dates.Add(date);
@@ -98,7 +98,7 @@ public static class Query
         return dates;
     }
 
-    public static List<ScheduleDiff> GetDateDiff(DateTime oldDate, DateTime newDate)
+    public static async Task<List<ScheduleDiff>> GetDateDiff(DateTime oldDate, DateTime newDate)
     {
         long newSeconds;
         long oldSeconds;
@@ -112,7 +112,7 @@ public static class Query
             newSeconds = DateCommon.DateToSeconds(oldDate);
             oldSeconds = DateCommon.DateToSeconds(newDate);
         }
-        using NpgsqlConnection db = InitializeDatabase();
+        await using NpgsqlConnection db = await InitializeDatabase();
         string stmt = """
             WITH OldSchedule AS (
                 SELECT 
@@ -156,13 +156,13 @@ public static class Query
                 )
             ORDER BY n.idx
             """;
-        using NpgsqlCommand selectCommand = new(stmt, db);
+        await using NpgsqlCommand selectCommand = new(stmt, db);
         selectCommand.Parameters.AddWithValue("@OldSeconds", oldSeconds);
         selectCommand.Parameters.AddWithValue("@NewSeconds", newSeconds);
 
         List<ScheduleDiff> diffs = [];
-        using NpgsqlDataReader query = selectCommand.ExecuteReader();
-        while (query.Read())
+        await using NpgsqlDataReader query = await selectCommand.ExecuteReaderAsync();
+        while (await query.ReadAsync())
         {
             DateTime oldStart = DateCommon.SecondsToDate(query.GetInt64(3));
             DateTime newStart = DateCommon.SecondsToDate(query.GetInt64(4));

@@ -12,14 +12,14 @@ public static class Mutation
     ///
     /// </summary>
     /// <returns>NpgsqlConnection that needs to be Disposed</returns>
-    private static NpgsqlConnection InitializeDatabase()
+    private static async Task<NpgsqlConnection> InitializeDatabase()
     {
         try
         {
             NpgsqlConnection db = new(DbCommon.CONNECTION_STRING);
-            db.Open();
-            using NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
-            command.ExecuteNonQuery();
+            await db.OpenAsync();
+            await using NpgsqlCommand command = new(DbCommon.INIT_STMT, db);
+            await command.ExecuteNonQueryAsync();
             return db;
         }
         catch (Exception ex)
@@ -47,17 +47,17 @@ public static class Mutation
         return DateCommon.DateToSeconds(date);
     }
 
-    private static bool DateExists(NpgsqlConnection db, long dateSeconds)
+    private static async Task<bool> DateExists(NpgsqlConnection db, long dateSeconds)
     {
         string stmt = """
                 SELECT EXISTS(
                     SELECT 1 FROM schedule WHERE date_s = @DateSeconds
                 )
             """;
-        using NpgsqlCommand command = new(stmt, db);
+        await using NpgsqlCommand command = new(stmt, db);
         command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-        using NpgsqlDataReader query = command.ExecuteReader();
-        if (!query.Read())
+        await using NpgsqlDataReader query = await command.ExecuteReaderAsync();
+        if (!await query.ReadAsync())
         {
             return false;
         }
@@ -119,16 +119,13 @@ public static class Mutation
                 else
                     insertCommand.Parameters.AddWithValue("@End", DBNull.Value);
                 insertCommand.Parameters.AddWithValue("@Index", idx);
-                insertCommand.ExecuteNonQuery();
+                await insertCommand.ExecuteNonQueryAsync();
             }
         }
         catch (InvalidDataException ex)
         {
             Console.WriteLine($"Parsing error: {ex.GetType()} {ex.Message}");
-            IError error = ErrorBuilder
-                .New()
-                .SetMessage("CSV файл плохо сформирован")
-                .Build();
+            IError error = ErrorBuilder.New().SetMessage("CSV файл плохо сформирован").Build();
             throw new GraphQLException(error);
         }
     }
@@ -137,9 +134,9 @@ public static class Mutation
     {
         long dateSeconds = DateCommon.DateToSeconds(date);
 
-        using NpgsqlConnection db = InitializeDatabase();
+        await using NpgsqlConnection db = await InitializeDatabase();
 
-        if (DateExists(db, dateSeconds))
+        if (await DateExists(db, dateSeconds))
         {
             IError error = ErrorBuilder
                 .New()
@@ -148,14 +145,14 @@ public static class Mutation
             throw new GraphQLException(error);
         }
 
-        using NpgsqlTransaction tx = db.BeginTransaction();
+        await using NpgsqlTransaction tx = db.BeginTransaction();
         await InsertData(db, tx, dateSeconds, file);
-        tx.Commit();
+        await tx.CommitAsync();
 
         return true;
     }
 
-    private static void DeleteObjectsForDate(
+    private static async Task DeleteObjectsForDate(
         NpgsqlConnection db,
         NpgsqlTransaction tx,
         long dateSeconds
@@ -164,9 +161,9 @@ public static class Mutation
         string stmt = """
                 DELETE FROM schedule WHERE date_s = @DateSeconds
             """;
-        using NpgsqlCommand command = new(stmt, db, tx);
+        await using NpgsqlCommand command = new(stmt, db, tx);
         command.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-        using NpgsqlDataReader reader = command.ExecuteReader();
+        await using NpgsqlDataReader reader = await command.ExecuteReaderAsync();
         if (reader.RecordsAffected <= 0)
         {
             IError error = ErrorBuilder.New().SetMessage("Данных на дату не существует").Build();
@@ -178,25 +175,25 @@ public static class Mutation
     {
         long dateSeconds = DateCommon.DateToSeconds(date);
 
-        using NpgsqlConnection db = InitializeDatabase();
-        using NpgsqlTransaction tx = db.BeginTransaction();
+        await using NpgsqlConnection db = await InitializeDatabase();
+        await using NpgsqlTransaction tx = await db.BeginTransactionAsync();
 
-        DeleteObjectsForDate(db, tx, dateSeconds);
+        await DeleteObjectsForDate(db, tx, dateSeconds);
         await InsertData(db, tx, dateSeconds, file);
-        tx.Commit();
+        await tx.CommitAsync();
 
         return true;
     }
 
-    public static bool DeleteScheduleObjects(DateTime date)
+    public static async Task<bool> DeleteScheduleObjects(DateTime date)
     {
         long dateSeconds = DateCommon.DateToSeconds(date);
 
-        using NpgsqlConnection db = InitializeDatabase();
-        using NpgsqlTransaction tx = db.BeginTransaction();
-        DeleteObjectsForDate(db, tx, dateSeconds);
-        tx.Commit();
-        
+        await using NpgsqlConnection db = await InitializeDatabase();
+        await using NpgsqlTransaction tx = await db.BeginTransactionAsync();
+        await DeleteObjectsForDate(db, tx, dateSeconds);
+        await tx.CommitAsync();
+
         return true;
     }
 }
