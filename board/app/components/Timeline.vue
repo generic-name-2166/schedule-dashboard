@@ -154,6 +154,14 @@ onMounted(() => {
         >
           <div class="marker-line"></div>
         </div>
+        <div
+          class="today-label"
+          :style="{ left: calculateOffset(new Date()) }"
+        >
+          {{
+            new Date().toLocaleDateString("ru-RU")
+          }}
+        </div>
       </div>
 
       <ul class="nodes">
@@ -185,6 +193,21 @@ onMounted(() => {
 </template>
 
 <style lang="css" scoped>
+.today-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background-color: var(--secondary-color);
+  color: var(--secondary-background);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  line-height: normal;
+  margin-block: 10px;
+  z-index: 1;
+}
+
 .timeline {
   overflow-x: scroll;
   scrollbar-color: var(--primary-background) var(--secondary-background);
