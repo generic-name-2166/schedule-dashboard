@@ -50,7 +50,7 @@ watch(
 <style lang="css" scoped>
 .sites-modal {
   width: stretch;
-  height: stretch;
+  height: 100%;
   padding: 2rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 2fr;
