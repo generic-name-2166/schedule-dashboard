@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import type { ScheduleNode } from "~/stores/schedule.ts";
-import type { ConstructionSite } from "~/stores/sites.ts";
 import Sidebar from "./Sidebar.vue";
 import Timeline from "./Timeline.vue";
 
 const props = defineProps<{
-  root: ConstructionSite;
   nodes: ScheduleNode[];
 }>();
 const emit = defineEmits<{
@@ -19,20 +17,17 @@ watch(
   () => props.nodes,
   (nodes) => (visible.value = new Array<boolean>(nodes.length).fill(true)),
 );
-const modalNodes = computed(() =>
-  props.nodes.slice(props.root.index, props.nodes[props.root.index]!.descendantEndIdx),
-);
 </script>
 
 <template>
   <div class="sites-modal">
     <div style="height: 60px"></div>
-    <Timeline v-model="scrollTop" :filtered="modalNodes" />
+    <Timeline v-model="scrollTop" :filtered="props.nodes" />
     <Sidebar
       v-model:scroll-top="scrollTop"
       v-model:visible="visible"
       :nodes="props.nodes"
-      :filtered="modalNodes"
+      :filtered="props.nodes"
     />
   </div>
 

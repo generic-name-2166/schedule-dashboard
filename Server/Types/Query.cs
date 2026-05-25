@@ -27,6 +27,31 @@ public static class Query
         }
     }
 
+    /// <summary>
+    /// Reads one row from a NpgsqlDataReader into a ScheduleObject.
+    /// Column order must be: id(0), level(1), wbs_code(2), code(3), name(4), start_s(5), end_s(6), idx(7), descendant_end_idx(8)
+    /// </summary>
+    private static ScheduleObject ReadScheduleObject(NpgsqlDataReader reader)
+    {
+        DateTime? start = reader.IsDBNull(5)
+            ? null
+            : DateCommon.SecondsToDate(reader.GetInt32(5));
+        DateTime? end = reader.IsDBNull(6)
+            ? null
+            : DateCommon.SecondsToDate(reader.GetInt32(6));
+        return new(
+            reader.GetInt32(0),
+            reader.GetInt32(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetString(4),
+            start,
+            end,
+            reader.GetInt32(7),
+            reader.GetInt32(8)
+        );
+    }
+
     public static async Task<List<ScheduleObject>> GetScheduleObjects(DateTime date)
     {
         await using NpgsqlConnection db = await InitializeDatabase();
@@ -51,29 +76,78 @@ public static class Query
         try
         {
             await using NpgsqlDataReader query = await selectCommand.ExecuteReaderAsync();
-
             while (await query.ReadAsync())
             {
-                DateTime? start = query.IsDBNull(5)
-                    ? null
-                    : DateCommon.SecondsToDate(query.GetInt32(5));
-                DateTime? end = query.IsDBNull(6)
-                    ? null
-                    : DateCommon.SecondsToDate(query.GetInt32(6));
-                ScheduleObject node = new(
-                    query.GetInt32(0),
-                    query.GetInt32(1),
-                    query.GetString(2),
-                    query.GetString(3),
-                    query.GetString(4),
-                    start,
-                    end,
-                    query.GetInt32(7),
-                    query.GetInt32(8)
-                );
-                objects.Add(node);
+                objects.Add(ReadScheduleObject(query));
             }
             return objects;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Querying error: {ex.GetType()} {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Get multiple subtrees (each root + all its descendants) by their codes, using a single self-join query.
+    /// Returns subtrees in the same order as the input codes; missing codes produce an empty inner list.
+    /// </summary>
+    public static async Task<List<List<ScheduleObject>>> GetScheduleSubtrees(
+        DateTime date,
+        List<string> codes
+    )
+    {
+        await using NpgsqlConnection db = await InitializeDatabase();
+
+        // Single query: self-join each root's range (idx..descendant_end_idx) against all rows.
+        // Note: code is NOT unique per date — some objects have a child with the same code.
+        // We use DISTINCT ON to pick the first occurrence (by idx) for each requested code.
+        string stmt = """
+                SELECT t.id, t.level, t.wbs_code, t.code, t.name,
+                       t.start_s, t.end_s, t.idx, t.descendant_end_idx,
+                       r.code AS root_code
+                FROM schedule t
+                INNER JOIN (
+                    SELECT DISTINCT ON (code) code,
+                           idx AS start_idx,
+                           descendant_end_idx AS end_idx
+                    FROM schedule
+                    WHERE date_s = @DateSeconds AND code = ANY(@Codes)
+                    ORDER BY code, idx
+                ) r
+                    ON t.idx >= r.start_idx AND t.idx < r.end_idx
+                WHERE t.date_s = @DateSeconds
+                ORDER BY r.start_idx, t.idx
+            """;
+        await using NpgsqlCommand command = new(stmt, db);
+        command.Parameters.AddWithValue("@DateSeconds", DateCommon.DateToSeconds(date));
+        command.Parameters.AddWithValue("@Codes", codes);
+
+        try
+        {
+            // Group by root_code preserving input order
+            Dictionary<string, List<ScheduleObject>> grouped = [];
+            foreach (string code in codes)
+            {
+                grouped[code] = []; // preserve input order via insertion order
+            }
+
+            await using NpgsqlDataReader query = await command.ExecuteReaderAsync();
+            while (await query.ReadAsync())
+            {
+                string rootCode = query.GetString(9);
+                ScheduleObject node = ReadScheduleObject(query);
+                grouped[rootCode].Add(node);
+            }
+
+            // Map back to input order
+            List<List<ScheduleObject>> result = [];
+            foreach (string code in codes)
+            {
+                result.Add(grouped[code]);
+            }
+            return result;
         }
         catch (Exception ex)
         {

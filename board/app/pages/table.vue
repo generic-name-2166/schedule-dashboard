@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
 import SitesModal from "~/components/SitesModal.vue";
-import { useScheduleStore } from "~/stores/schedule";
 import { useSitesStore } from "~/stores/sites.ts";
 
-const scheduleStore = useScheduleStore();
-await scheduleStore.init();
 const store = useSitesStore();
-store.init(scheduleStore.treelike.nodes);
+await store.init(new Date("2026-05-25T00:00:00Z"));
 
 const dialogs = useTemplateRef("dialog");
 </script>
@@ -50,8 +47,7 @@ const dialogs = useTemplateRef("dialog");
 
       <dialog ref="dialog" class="dialog">
         <SitesModal
-          :root="node"
-          :nodes="scheduleStore.treelike.nodes"
+          :nodes="store.subtrees[idx] ?? []"
           @close="() => dialogs?.[idx]?.close()"
         />
       </dialog>

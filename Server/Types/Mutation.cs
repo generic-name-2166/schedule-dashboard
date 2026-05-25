@@ -196,6 +196,11 @@ public static class Mutation
             IError error = ErrorBuilder.New().SetMessage("CSV файл плохо сформирован").Build();
             throw new GraphQLException(error);
         }
+        catch (Exception ex) 
+        {
+            Console.WriteLine($"everything is bad: {ex.GetType()} {ex.Message}");
+            throw;
+        }
     }
 
     public static async Task<bool> CreateScheduleObjects(DateTime date, IFile file)
