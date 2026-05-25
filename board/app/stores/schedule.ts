@@ -50,7 +50,6 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     index: number;
     depth: number;
   }
-
   /**
    * a stack of the latest "open" nodes' indicies and their WBS depth in the input array
    * utilizing the guarantee that the `array` is given in a WBS sorted order
@@ -67,8 +66,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     const depth: number = wbs.length;
     // Clean up stack to find actual parent
     while (open.length > 0 && open.at(-1)!.depth >= depth) {
-      const closed: OpenNode = open.pop()!;
-      // descendantEndIdx is already set from the database
+      open.pop();
     }
 
     if (open.length == 0) {
@@ -95,8 +93,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     } satisfies ScheduleNode;
   }
 
-  for (let index = 0; index < nodes.length; ++index) {
-    const node = nodes[index]!;
+  for (const node of nodes) {
     const lastChild = node.children.at(-1);
     if (!lastChild) {
       continue;

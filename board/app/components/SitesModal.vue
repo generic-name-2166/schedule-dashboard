@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import type { ScheduleNode } from "~/stores/schedule.ts";
 import Sidebar from "./Sidebar.vue";
 import Timeline from "./Timeline.vue";
@@ -12,22 +12,25 @@ const emit = defineEmits<{
 }>();
 
 const scrollTop = ref(0);
-const visible = ref(new Array<boolean>(props.nodes.length).fill(true));
+const visible = shallowRef(new Array<boolean>(props.nodes.length).fill(true));
 watch(
   () => props.nodes,
   (nodes) => (visible.value = new Array<boolean>(nodes.length).fill(true)),
+);
+const filtered = computed(() =>
+  props.nodes.filter((_, idx) => visible.value[idx]),
 );
 </script>
 
 <template>
   <div class="sites-modal">
     <div style="height: 60px"></div>
-    <Timeline v-model="scrollTop" :filtered="props.nodes" />
+    <Timeline v-model="scrollTop" :filtered="filtered" />
     <Sidebar
       v-model:scroll-top="scrollTop"
       v-model:visible="visible"
       :nodes="props.nodes"
-      :filtered="props.nodes"
+      :filtered="filtered"
     />
   </div>
 
@@ -57,6 +60,7 @@ watch(
   grid-template-rows: 60px auto;
   column-gap: 1rem;
 }
+
 .modal-close {
   position: absolute;
   top: 0.5rem;

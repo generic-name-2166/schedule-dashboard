@@ -1,11 +1,12 @@
 import { defineStore } from "pinia";
 import { ref, shallowRef } from "vue";
-import { collectTree, type ScheduleDTO, type ScheduleNode } from "./schedule.ts";
+import {
+  collectTree,
+  type ScheduleDTO,
+  type ScheduleNode,
+} from "./schedule.ts";
 
-const MOCK_SITES: ScheduleDTO["code"][] = [
-  "2121474769192",
-  "214747750911213",
-];
+const MOCK_SITES: ScheduleDTO["code"][] = ["2121474769192", "214747750911213"];
 
 export interface ConstructionSite {
   index: number;
@@ -58,7 +59,6 @@ export const useSitesStore = defineStore("sites-store", () => {
 
     for (const subtree of raw) {
       if (subtree.length === 0) {
-        sitesList.push({ index: -1, wbsCode: "", name: "", start: undefined, end: undefined });
         trees.push([]);
         continue;
       }
@@ -70,7 +70,7 @@ export const useSitesStore = defineStore("sites-store", () => {
         name: root.name,
         start: root.start ? new Date(root.start) : undefined,
         end: root.end ? new Date(root.end) : undefined,
-      });
+      } satisfies ConstructionSite);
 
       // Remap indices to be local to this subtree
       const rootIdx = root.index;
