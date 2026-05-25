@@ -64,6 +64,49 @@ public static class Mutation
         return query.GetBoolean(0);
     }
 
+    private readonly record struct ParsedRow(
+        int Id,
+        int Level,
+        string WbsCode,
+        string Code,
+        string Name,
+        long? StartSeconds,
+        long? EndSeconds,
+        int DescendantEndIdx
+    );
+
+    /// <summary>Compute descendant end indices using the same algorithm as collectTree on the frontend.</summary>
+    private static void ComputeDescendants(List<ParsedRow> rows)
+    {
+        // Compute the number of WBS segments to determine root depth
+        int rootDepth = rows.Count > 0 ? rows[0].WbsCode.Split('.').Length : 0;
+
+        // Stack of (index, depth)
+        Stack<(int Index, int Depth)> open = new();
+
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var row = rows[i];
+            int depth = row.WbsCode.Split('.').Length;
+
+            // Close nodes that are at the same or higher depth
+            while (open.Count > 0 && open.Peek().Depth >= depth)
+            {
+                var closed = open.Pop();
+                rows[closed.Index] = rows[closed.Index] with { DescendantEndIdx = i };
+            }
+
+            open.Push((i, depth));
+        }
+
+        // Close remaining open nodes
+        while (open.Count > 0)
+        {
+            var closed = open.Pop();
+            rows[closed.Index] = rows[closed.Index] with { DescendantEndIdx = rows.Count };
+        }
+    }
+
     private static async Task InsertData(
         NpgsqlConnection db,
         NpgsqlTransaction tx,
@@ -81,7 +124,8 @@ public static class Mutation
                 @Name, 
                 @Start, 
                 @End, 
-                @Index 
+                @Index,
+                @DescendantEndIdx
             )
             """;
 
@@ -91,34 +135,58 @@ public static class Mutation
         {
             using SepReader reader = Sep.Reader().From(stream);
 
+            // Buffer all rows to compute descendant_end_idx
+            List<ParsedRow> rows = new(1024);
+
             int idx = -1;
-            foreach (var row in reader)
+            foreach (var csvRow in reader)
             {
                 ++idx;
-                int id = row["Ид"].Parse<int>();
-                int level = row["Уровень"].Parse<int>();
-                ReadOnlySpan<char> wbsCode = row["Код WBS"].Span;
-                ReadOnlySpan<char> code = row["Код"].Span;
-                ReadOnlySpan<char> name = row["Название"].Span;
-                long? startSeconds = ParseDate(row["Начало"].Span);
-                long? endSeconds = ParseDate(row["Окончание"].Span);
+                int id = csvRow["Ид"].Parse<int>();
+                int level = csvRow["Уровень"].Parse<int>();
+                ReadOnlySpan<char> wbsCode = csvRow["Код WBS"].Span;
+                ReadOnlySpan<char> code = csvRow["Код"].Span;
+                ReadOnlySpan<char> name = csvRow["Название"].Span;
+                long? startSeconds = ParseDate(csvRow["Начало"].Span);
+                long? endSeconds = ParseDate(csvRow["Окончание"].Span);
 
+                rows.Add(new ParsedRow
+                {
+                    Id = id,
+                    Level = level,
+                    WbsCode = wbsCode.ToString(),
+                    Code = code.ToString(),
+                    Name = name.ToString(),
+                    StartSeconds = startSeconds,
+                    EndSeconds = endSeconds,
+                    DescendantEndIdx = 0, // placeholder, will be computed
+                });
+            }
+
+            ComputeDescendants(rows);
+
+            // Insert all rows with computed descendant_end_idx
+            int r = -1;
+            foreach (var row in rows)
+            {
+                ++r;
                 using NpgsqlCommand insertCommand = new(stmt, db, tx);
                 insertCommand.Parameters.AddWithValue("@DateSeconds", dateSeconds);
-                insertCommand.Parameters.AddWithValue("@Id", id);
-                insertCommand.Parameters.AddWithValue("@Level", level);
-                insertCommand.Parameters.AddWithValue("@WbsCode", wbsCode.ToString());
-                insertCommand.Parameters.AddWithValue("@Code", code.ToString());
-                insertCommand.Parameters.AddWithValue("@Name", name.ToString());
-                if (startSeconds is not null)
-                    insertCommand.Parameters.AddWithValue("@Start", startSeconds);
+                insertCommand.Parameters.AddWithValue("@Id", row.Id);
+                insertCommand.Parameters.AddWithValue("@Level", row.Level);
+                insertCommand.Parameters.AddWithValue("@WbsCode", row.WbsCode);
+                insertCommand.Parameters.AddWithValue("@Code", row.Code);
+                insertCommand.Parameters.AddWithValue("@Name", row.Name);
+                if (row.StartSeconds is not null)
+                    insertCommand.Parameters.AddWithValue("@Start", row.StartSeconds);
                 else
                     insertCommand.Parameters.AddWithValue("@Start", DBNull.Value);
-                if (endSeconds is not null)
-                    insertCommand.Parameters.AddWithValue("@End", endSeconds);
+                if (row.EndSeconds is not null)
+                    insertCommand.Parameters.AddWithValue("@End", row.EndSeconds);
                 else
                     insertCommand.Parameters.AddWithValue("@End", DBNull.Value);
-                insertCommand.Parameters.AddWithValue("@Index", idx);
+                insertCommand.Parameters.AddWithValue("@Index", r);
+                insertCommand.Parameters.AddWithValue("@DescendantEndIdx", row.DescendantEndIdx);
                 await insertCommand.ExecuteNonQueryAsync();
             }
         }

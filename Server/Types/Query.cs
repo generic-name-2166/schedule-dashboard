@@ -40,7 +40,8 @@ public static class Query
                 name,
                 start_s,
                 end_s, 
-                idx
+                idx,
+                descendant_end_idx
             FROM schedule
             WHERE date_s = @DateSeconds
             """;
@@ -67,7 +68,8 @@ public static class Query
                     query.GetString(4),
                     start,
                     end,
-                    query.GetInt32(7)
+                    query.GetInt32(7),
+                    query.GetInt32(8)
                 );
                 objects.Add(node);
             }

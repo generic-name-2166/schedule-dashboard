@@ -32,7 +32,6 @@ await store.init();
       v-model:scroll-top="store.scrollTop"
       v-model:visible="store.visible"
       :nodes="store.treelike.nodes"
-      :descendants="store.treelike.descendants"
       :filtered="store.filtered"
       :search="store.searchString"
     />

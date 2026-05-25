@@ -8,7 +8,6 @@ import Timeline from "./Timeline.vue";
 const props = defineProps<{
   root: ConstructionSite;
   nodes: ScheduleNode[];
-  descendants: number[];
 }>();
 const emit = defineEmits<{
   close: [];
@@ -21,7 +20,7 @@ watch(
   (nodes) => (visible.value = new Array<boolean>(nodes.length).fill(true)),
 );
 const modalNodes = computed(() =>
-  props.nodes.slice(props.root.index, props.descendants[props.root.index]),
+  props.nodes.slice(props.root.index, props.nodes[props.root.index]!.descendantEndIdx),
 );
 </script>
 
@@ -34,7 +33,6 @@ const modalNodes = computed(() =>
       v-model:visible="visible"
       :nodes="props.nodes"
       :filtered="modalNodes"
-      :descendants="props.descendants"
     />
   </div>
 

@@ -7,7 +7,6 @@ import SidebarStep from "./SidebarStep.vue";
 const props = defineProps<{
   /** full unfiltered list, used for `open` property on `ScheduleNode` */
   nodes: ScheduleNode[];
-  descendants: number[];
   filtered: ScheduleNode[];
   search?: string;
 }>();
@@ -54,7 +53,6 @@ watch(
       :index="filtered[index]!.index"
       :name="filtered[index]!.name"
       :depth="filtered[index]!.depth"
-      :descendants="props.descendants"
       :start="start"
       :search="props.search"
     />

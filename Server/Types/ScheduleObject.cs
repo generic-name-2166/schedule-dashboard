@@ -9,5 +9,7 @@ public record ScheduleObject(
     DateTime? Start,
     DateTime? End,
     /// index in the sorted array for a specific date
-    int Index
+    int Index,
+    /// index of the last descendant + 1 (for leaves: current index + 1)
+    int DescendantEndIdx
 );

@@ -10,6 +10,7 @@ test("filtering by search string", () => {
       level: 0,
       code: "",
       index: 1,
+      descendantEndIdx: 4,
     },
     {
       id: 2,
@@ -18,6 +19,7 @@ test("filtering by search string", () => {
       level: 0,
       code: "",
       index: 1,
+      descendantEndIdx: 4,
     },
     {
       id: 3,
@@ -26,6 +28,7 @@ test("filtering by search string", () => {
       level: 0,
       code: "",
       index: 1,
+      descendantEndIdx: 4,
     }, // Match here
     {
       id: 4,
@@ -34,11 +37,12 @@ test("filtering by search string", () => {
       level: 0,
       code: "",
       index: 1,
+      descendantEndIdx: 4,
     }, // Should be filtered
   ];
   const result = searchFilter(mockData, "Alpha");
   expect(result).not.toBe(null);
-  expect(result.length).toBe(3);
+  expect(result.length).toBe(mockData.length);
   expect(result[0]).toBe(true);
   expect(result[1]).toBe(true);
   expect(result[2]).toBe(true);
@@ -56,6 +60,7 @@ test("collecting schedule nodes into a tree", () => {
       start: "",
       end: "",
       index: 0,
+      descendantEndIdx: 2,
     },
     {
       level: 5,
@@ -66,6 +71,7 @@ test("collecting schedule nodes into a tree", () => {
       start: "",
       end: "",
       index: 1,
+      descendantEndIdx: 2,
     },
     {
       level: 4,
@@ -76,9 +82,10 @@ test("collecting schedule nodes into a tree", () => {
       start: "",
       end: "",
       index: 2,
+      descendantEndIdx: 3,
     },
   ];
-  const { roots, nodes, descendants } = collectTree(data);
+  const { roots, nodes } = collectTree(data);
   // Root should be index 0
   expect(roots.size).toBe(2);
   expect(roots).toContain(0);
@@ -93,7 +100,8 @@ test("collecting schedule nodes into a tree", () => {
   expect(nodes[2]?.wbsCode).toEqual("6.4.2");
   expect(nodes[2]?.children).toHaveLength(0);
 
-  expect(descendants[0]).toBe(2);
-  expect(descendants[1]).toBe(2);
-  expect(descendants[2]).toBe(3);
+  // descendantEndIdx is set from the DTO (simulating database-provided value)
+  expect(nodes[0]!.descendantEndIdx).toBe(2);
+  expect(nodes[1]!.descendantEndIdx).toBe(2);
+  expect(nodes[2]!.descendantEndIdx).toBe(3);
 });

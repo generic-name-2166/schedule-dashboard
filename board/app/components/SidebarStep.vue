@@ -10,7 +10,6 @@ const props = defineProps<{
   /** full unfiltered list, used for `open` property on `ScheduleNode` */
   nodes: ScheduleNode[];
   sidebarId: string;
-  descendants: number[];
   /** index in the global immutable array given above  */
   index: number;
   name: string;
@@ -21,7 +20,7 @@ const props = defineProps<{
 
 const toggle = (): void => {
   const o = !open.value;
-  const descendantEndIdx: number = props.descendants[props.index]!;
+  const descendantEndIdx: number = props.nodes[props.index]!.descendantEndIdx;
 
   open.value = o;
   // при открытии родителя закрытые дети не открываются (O(n))
@@ -30,7 +29,7 @@ const toggle = (): void => {
     const open: boolean | null = props.nodes[idx]!.open.value;
     visible.value[idx] = true;
     if (open === false) {
-      const innerDescendantEndIdx: number = props.descendants[idx]!;
+      const innerDescendantEndIdx: number = props.nodes[idx]!.descendantEndIdx;
       visible.value.fill(false, idx + 1, innerDescendantEndIdx);
       // - 1 потому что ++idx при следующей итерации добавляет 1
       idx = innerDescendantEndIdx - 1;

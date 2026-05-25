@@ -16,6 +16,7 @@ public static class DbCommon
                 start_s INTEGER, 
                 end_s INTEGER, 
                 idx INTEGER NOT NULL, 
+                descendant_end_idx INTEGER NOT NULL, 
                 PRIMARY KEY (date_s, id)
             )
         """;

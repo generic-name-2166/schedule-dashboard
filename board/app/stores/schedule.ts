@@ -13,6 +13,8 @@ export interface ScheduleDTO {
   end?: string;
   /** index in the sorted array for a specific date */
   index: number;
+  /** index of the last descendant + 1 (for leaves: current index + 1) */
+  descendantEndIdx: number;
 }
 
 export interface ScheduleNode extends Omit<ScheduleDTO, "start" | "end"> {
@@ -32,8 +34,6 @@ export interface ScheduleTreeLike {
   roots: Set<number>;
   /** parse the object and add properties for rendering, MUST be the same size as input array */
   nodes: ScheduleNode[];
-  /** index of the last descendant for each node + 1, for leaves it will be current index + 1 */
-  descendants: number[];
 }
 
 function maybeParse(maybeDate?: string): Date | undefined {
@@ -45,7 +45,6 @@ function maybeParse(maybeDate?: string): Date | undefined {
  */
 export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   const roots = new Set<number>();
-  const descendants: number[] = new Array<number>(array.length).fill(0);
 
   interface OpenNode {
     index: number;
@@ -69,7 +68,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     // Clean up stack to find actual parent
     while (open.length > 0 && open.at(-1)!.depth >= depth) {
       const closed: OpenNode = open.pop()!;
-      descendants[closed.index] = index;
+      // descendantEndIdx is already set from the database
     }
 
     if (open.length == 0) {
@@ -96,11 +95,6 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
     } satisfies ScheduleNode;
   }
 
-  // fill out the descendants array values for the last elements of each level
-  for (const closed of open) {
-    descendants[closed.index] = array.length;
-  }
-
   for (let index = 0; index < nodes.length; ++index) {
     const node = nodes[index]!;
     const lastChild = node.children.at(-1);
@@ -108,7 +102,7 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
       continue;
     }
     const childDepthIdx: number = node.depth.length;
-    for (let idx = lastChild + 1; idx < descendants[index]!; ++idx) {
+    for (let idx = lastChild + 1; idx < node.descendantEndIdx; ++idx) {
       const descendantNode = nodes[idx]!;
       descendantNode.depth[childDepthIdx] = false;
     }
@@ -122,7 +116,6 @@ export function collectTree(array: ScheduleDTO[]): ScheduleTreeLike {
   return {
     roots,
     nodes,
-    descendants,
   };
 }
 
@@ -235,6 +228,7 @@ export const useScheduleStore = defineStore("schedule-store", () => {
           start
           end
           index
+          descendantEndIdx
         }
       }
     `;

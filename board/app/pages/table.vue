@@ -52,7 +52,6 @@ const dialogs = useTemplateRef("dialog");
         <SitesModal
           :root="node"
           :nodes="scheduleStore.treelike.nodes"
-          :descendants="scheduleStore.treelike.descendants"
           @close="() => dialogs?.[idx]?.close()"
         />
       </dialog>
