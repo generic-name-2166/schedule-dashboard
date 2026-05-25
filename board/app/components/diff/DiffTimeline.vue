@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, onMounted } from "vue";
-import type { ScheduleDiff } from "../stores/diff.ts";
+import type { ScheduleDiff } from "../../stores/diff.ts";
 
 const TIMELINE_START: Date = new Date("2021-01-01");
 const TIMELINE_END: Date = new Date("2029-01-01");

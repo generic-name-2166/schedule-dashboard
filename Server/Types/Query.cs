@@ -101,7 +101,8 @@ public static class Query
         // Note: код - не уникальное значение по дате (некоторые имею идентичный лист с тем же кодом)
         // используем DISTINCT ON чтобы получить первый объект по коду
         string stmt = """
-            SELECT t.id, t.level, t.wbs_code, t.code, t.name,
+            SELECT 
+                t.id, t.level, t.wbs_code, t.code, t.name,
                 t.start_s, t.end_s, t.idx, t.descendant_end_idx,
                 r.code AS root_code
             FROM schedule t
@@ -193,7 +194,6 @@ public static class Query
                     id,
                     level,
                     wbs_code,
-                    code,
                     name,
                     start_s,
                     end_s, 
@@ -206,7 +206,6 @@ public static class Query
                     id,
                     level,
                     wbs_code,
-                    code,
                     name,
                     start_s,
                     end_s, 

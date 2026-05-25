@@ -30,8 +30,8 @@ await store.init();
       <button type="submit">Сравнить</button>
     </form>
     <div v-if="store.nodes.length > 0" class="gantt-chart">
-      <DiffSidebar v-model:scroll-top="store.scrollTop" :diffs="store.nodes" />
-      <DiffTimeline v-model="store.scrollTop" :diffs="store.nodes" />
+      <DiffSidebar :diffs="store.nodes" />
+      <DiffTimeline :diffs="store.nodes" />
     </div>
     <p v-else class="missing-data">Нет данных для сравнения</p>
   </template>

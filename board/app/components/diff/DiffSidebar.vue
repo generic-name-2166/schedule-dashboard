@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScheduleDiff } from "../stores/diff.ts";
+import type { ScheduleDiff } from "../../stores/diff.ts";
 
 const props = defineProps<{
   diffs: ScheduleDiff[];
