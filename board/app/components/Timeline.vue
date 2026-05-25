@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useTemplateRef, onMounted, watch } from "vue";
+import { computed, useTemplateRef, onMounted, watch, ref } from "vue";
 import type { ScheduleNode } from "../stores/schedule.ts";
 import TimelineBar from "./TimelineBar.vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
@@ -10,6 +10,28 @@ const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
 /** percentage of 2000px (width of the inner timeline) that fits days text */
 const WIDTH_CUTOFF = 5;
+
+const cursorPos = ref<{ x: number; y: number }>();
+
+const onTimelineMouseMove = (e: MouseEvent): void => {
+  const el = timeline.value!;
+  const rect = el.getBoundingClientRect();
+  const style = getComputedStyle(el);
+  const paddingLeft = parseFloat(style.paddingLeft);
+  const paddingTop = parseFloat(style.paddingTop);
+  const pixelX = Math.min(
+    Math.max(e.clientX - rect.left - paddingLeft + el.scrollLeft, 0),
+    2000,
+  );
+  const pixelY = e.clientY - rect.top - paddingTop;
+  const ratio = pixelX / 2000;
+  const date = TIMELINE_START.valueOf() + ratio * TOTAL_DURATION;
+  cursorPos.value = { x: date, y: pixelY };
+};
+
+const onTimelineMouseLeave = (): void => {
+  cursorPos.value = undefined;
+};
 
 const timeline = useTemplateRef<HTMLDivElement>("timeline");
 
@@ -126,7 +148,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="timeline" class="timeline" @scroll.passive="scroll">
+  <div
+    ref="timeline"
+    class="timeline"
+    @scroll.passive="scroll"
+    @mousemove.passive="onTimelineMouseMove"
+    @mouseleave.passive="onTimelineMouseLeave"
+  >
     <div>
       <div
         class="today-line"
@@ -135,6 +163,26 @@ onMounted(() => {
           height: `${virtualizer.getTotalSize() + 60}px`,
         }"
       ></div>
+      <div
+        v-if="cursorPos"
+        :key="cursorPos.x"
+        class="cursor-line"
+        :style="{
+          left: calculateOffset(new Date(cursorPos.x)),
+          height: `${virtualizer.getTotalSize() + 60}px`,
+        }"
+      ></div>
+      <div
+        v-if="cursorPos"
+        :key="cursorPos.x"
+        class="cursor-label"
+        :style="{
+          left: calculateOffset(new Date(cursorPos.x)),
+          top: cursorPos.y + 'px',
+        }"
+      >
+        {{ new Date(cursorPos.x).toLocaleDateString("ru-RU") }}
+      </div>
 
       <div v-once class="timeline-header">
         <div
@@ -154,13 +202,8 @@ onMounted(() => {
         >
           <div class="marker-line"></div>
         </div>
-        <div
-          class="today-label"
-          :style="{ left: calculateOffset(new Date()) }"
-        >
-          {{
-            new Date().toLocaleDateString("ru-RU")
-          }}
+        <div class="today-label" :style="{ left: calculateOffset(new Date()) }">
+          {{ new Date().toLocaleDateString("ru-RU") }}
         </div>
       </div>
 
@@ -193,6 +236,42 @@ onMounted(() => {
 </template>
 
 <style lang="css" scoped>
+@keyframes cursor-fade {
+  0% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-line {
+  width: 2px;
+  position: absolute;
+  top: 0;
+  background-color: var(--primary-color);
+  opacity: 0.7;
+  pointer-events: none;
+  animation: cursor-fade 10s ease forwards;
+}
+
+.cursor-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background-color: var(--primary-color);
+  color: var(--secondary-background);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  line-height: normal;
+  pointer-events: none;
+  animation: cursor-fade 4s ease forwards;
+}
+
 .today-label {
   position: absolute;
   top: 0;
