@@ -150,17 +150,19 @@ public static class Mutation
                 long? startSeconds = ParseDate(csvRow["Начало"].Span);
                 long? endSeconds = ParseDate(csvRow["Окончание"].Span);
 
-                rows.Add(new ParsedRow
-                {
-                    Id = id,
-                    Level = level,
-                    WbsCode = wbsCode.ToString(),
-                    Code = code.ToString(),
-                    Name = name.ToString(),
-                    StartSeconds = startSeconds,
-                    EndSeconds = endSeconds,
-                    DescendantEndIdx = 0, // placeholder, will be computed
-                });
+                rows.Add(
+                    new ParsedRow
+                    {
+                        Id = id,
+                        Level = level,
+                        WbsCode = wbsCode.ToString(),
+                        Code = code.ToString(),
+                        Name = name.ToString(),
+                        StartSeconds = startSeconds,
+                        EndSeconds = endSeconds,
+                        DescendantEndIdx = 0, // placeholder, will be computed
+                    }
+                );
             }
 
             ComputeDescendants(rows);
@@ -196,10 +198,15 @@ public static class Mutation
             IError error = ErrorBuilder.New().SetMessage("CSV файл плохо сформирован").Build();
             throw new GraphQLException(error);
         }
-        catch (Exception ex) 
+        catch (PostgresException ex)
         {
-            Console.WriteLine($"everything is bad: {ex.GetType()} {ex.Message}");
-            throw;
+            Console.WriteLine($"Insert error: {ex.GetType()} {ex.Message}");
+            // при нормальном использовании мы можем только ожидать primary key constraint error
+            IError error = ErrorBuilder
+                .New()
+                .SetMessage("Файл содержит некорректные данные, например повторяющиеся ID")
+                .Build();
+            throw new GraphQLException(error);
         }
     }
 

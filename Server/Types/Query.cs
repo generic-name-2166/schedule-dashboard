@@ -33,12 +33,8 @@ public static class Query
     /// </summary>
     private static ScheduleObject ReadScheduleObject(NpgsqlDataReader reader)
     {
-        DateTime? start = reader.IsDBNull(5)
-            ? null
-            : DateCommon.SecondsToDate(reader.GetInt32(5));
-        DateTime? end = reader.IsDBNull(6)
-            ? null
-            : DateCommon.SecondsToDate(reader.GetInt32(6));
+        DateTime? start = reader.IsDBNull(5) ? null : DateCommon.SecondsToDate(reader.GetInt32(5));
+        DateTime? end = reader.IsDBNull(6) ? null : DateCommon.SecondsToDate(reader.GetInt32(6));
         return new(
             reader.GetInt32(0),
             reader.GetInt32(1),
@@ -90,8 +86,9 @@ public static class Query
     }
 
     /// <summary>
-    /// Get multiple subtrees (each root + all its descendants) by their codes, using a single self-join query.
-    /// Returns subtrees in the same order as the input codes; missing codes produce an empty inner list.
+    /// Собирает несколько веток (каждый корень + все потомки) по кодам
+    /// Возвращает ветки в том же порядке что и коды на входе
+    /// Если кода нет по дате, возвращает пустой список
     /// </summary>
     public static async Task<List<List<ScheduleObject>>> GetScheduleSubtrees(
         DateTime date,
@@ -100,25 +97,26 @@ public static class Query
     {
         await using NpgsqlConnection db = await InitializeDatabase();
 
-        // Single query: self-join each root's range (idx..descendant_end_idx) against all rows.
-        // Note: code is NOT unique per date — some objects have a child with the same code.
-        // We use DISTINCT ON to pick the first occurrence (by idx) for each requested code.
+        // Используем descendant_end_idx чтобы получить ветки всех запрошенных объектов по кодам
+        // Note: код - не уникальное значение по дате (некоторые имею идентичный лист с тем же кодом)
+        // используем DISTINCT ON чтобы получить первый объект по коду
         string stmt = """
-                SELECT t.id, t.level, t.wbs_code, t.code, t.name,
-                       t.start_s, t.end_s, t.idx, t.descendant_end_idx,
-                       r.code AS root_code
-                FROM schedule t
-                INNER JOIN (
-                    SELECT DISTINCT ON (code) code,
-                           idx AS start_idx,
-                           descendant_end_idx AS end_idx
-                    FROM schedule
-                    WHERE date_s = @DateSeconds AND code = ANY(@Codes)
-                    ORDER BY code, idx
-                ) r
-                    ON t.idx >= r.start_idx AND t.idx < r.end_idx
-                WHERE t.date_s = @DateSeconds
-                ORDER BY r.start_idx, t.idx
+            SELECT t.id, t.level, t.wbs_code, t.code, t.name,
+                t.start_s, t.end_s, t.idx, t.descendant_end_idx,
+                r.code AS root_code
+            FROM schedule t
+            INNER JOIN (
+                SELECT 
+                    DISTINCT ON (code) code,
+                    idx AS start_idx,
+                    descendant_end_idx AS end_idx
+                FROM schedule
+                WHERE date_s = @DateSeconds AND code = ANY(@Codes)
+                ORDER BY code, idx
+            ) r
+                ON t.idx >= r.start_idx AND t.idx < r.end_idx
+            WHERE t.date_s = @DateSeconds
+            ORDER BY r.start_idx, t.idx
             """;
         await using NpgsqlCommand command = new(stmt, db);
         command.Parameters.AddWithValue("@DateSeconds", DateCommon.DateToSeconds(date));
@@ -161,7 +159,7 @@ public static class Query
         await using NpgsqlConnection db = await InitializeDatabase();
         List<DateTime> dates = [];
         string stmt = """
-                SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
+            SELECT DISTINCT date_s FROM schedule ORDER BY date_s ASC
             """;
         await using NpgsqlCommand selectCommand = new(stmt, db);
 
