@@ -8,8 +8,15 @@ const TIMELINE_START: Date = new Date("2021-01-01");
 const TIMELINE_END: Date = new Date("2029-01-01");
 const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
-/** percentage of 2000px (width of the inner timeline) that fits days text */
+const BASE_WIDTH = 2000;
+/** percentage of timeline width that fits days text */
 const WIDTH_CUTOFF = 5;
+
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 12;
+
+const zoom = ref(1);
+const timelineWidth = computed(() => BASE_WIDTH * zoom.value);
 
 const cursorPos = ref<{ x: number; y: number }>();
 
@@ -21,16 +28,43 @@ const onTimelineMouseMove = (e: MouseEvent): void => {
   const paddingTop = parseFloat(style.paddingTop);
   const pixelX = Math.min(
     Math.max(e.clientX - rect.left - paddingLeft + el.scrollLeft, 0),
-    2000,
+    timelineWidth.value,
   );
   const pixelY = e.clientY - rect.top - paddingTop;
-  const ratio = pixelX / 2000;
+  const ratio = pixelX / timelineWidth.value;
   const date = TIMELINE_START.valueOf() + ratio * TOTAL_DURATION;
   cursorPos.value = { x: date, y: pixelY };
 };
 
 const onTimelineMouseLeave = (): void => {
   cursorPos.value = undefined;
+};
+
+const onTimelineWheel = (e: WheelEvent): void => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+
+  const el = timeline.value!;
+  const rect = el.getBoundingClientRect();
+  const style = getComputedStyle(el);
+  const paddingLeft = parseFloat(style.paddingLeft);
+
+  const oldZoom = zoom.value;
+  const oldWidth = timelineWidth.value;
+  const zoomDelta = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, oldZoom * zoomDelta));
+  if (newZoom === oldZoom) return;
+
+  // Zoom towards cursor: keep the point under the cursor stationary
+  const viewportCursorX = e.clientX - rect.left - paddingLeft;
+  const cursorWorldX = el.scrollLeft + viewportCursorX;
+  const ratio = cursorWorldX / oldWidth;
+  zoom.value = newZoom;
+
+  // After zoom, the point at ratio * newWidth should be at the same viewport position
+  requestAnimationFrame(() => {
+    el.scrollLeft = ratio * timelineWidth.value - viewportCursorX;
+  });
 };
 
 const timeline = useTemplateRef<HTMLDivElement>("timeline");
@@ -90,40 +124,87 @@ interface YearTick {
   offset: string;
 }
 
+interface MonthLabelTick {
+  label: string;
+  offset: string;
+}
+
+interface WeekTick {
+  offset: string;
+}
+
 const markers = computed<{
-  major: YearTick[];
-  /** offsets */
-  minor: string[];
+  yearTicks: YearTick[];
+  monthLineTicks: string[];
+  monthLabelTicks: MonthLabelTick[];
+  weekTicks: WeekTick[];
 }>(() => {
   const startYear: number = TIMELINE_START.getFullYear();
   const endYear: number = TIMELINE_END.getFullYear();
+  const yearCount = endYear - startYear;
 
-  const major = new Array<YearTick>(endYear - startYear);
-  // 11 потому что тик за январь ставиться большим как год
-  const minor = new Array<string>((endYear - startYear) * 11);
+  const yearTicks = new Array<YearTick>(yearCount);
+  const monthLabelTicks = new Array<MonthLabelTick>(yearCount * 12);
+  // 11 month-line ticks per year (jan is covered by year tick)
+  const monthLineTicks = new Array<string>(yearCount * 11);
+  const weekTicks: WeekTick[] = [];
+
+  const MONTH_NAMES = [
+    "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+    "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек",
+  ];
 
   let idx = 0;
   for (let year = startYear; year < endYear; year++) {
     const yearDate = new Date(year, 0, 1);
-    major[idx] = {
+    yearTicks[idx] = {
       year,
       offset: calculateOffset(yearDate),
     } satisfies YearTick;
 
+    // Month label ticks (all 12 months)
+    for (let month = 0; month < 12; month++) {
+      const monthDate = new Date(year, month, 1);
+      const offset = calculateOffset(monthDate);
+      monthLabelTicks[idx * 12 + month] = {
+        label: month === 0 ? "" : MONTH_NAMES[month]!,
+        offset,
+      } satisfies MonthLabelTick;
+    }
+
+    // Month line ticks (feb-dec, jan covered by year)
     for (let month = 1; month < 12; month++) {
       const monthDate = new Date(year, month, 1);
-      minor[idx * 11 + month] = calculateOffset(monthDate);
+      monthLineTicks[idx * 11 + month - 1] = calculateOffset(monthDate);
+    }
+
+    // Week ticks (start each Monday)
+    const d = new Date(year, 0, 1);
+    // Find first Monday on or after Jan 1
+    const dayOfWeek = d.getDay();
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek) % 7;
+    d.setDate(d.getDate() + (daysUntilMonday || 7));
+
+    while (d.getFullYear() < year + 1) {
+      weekTicks.push({ offset: calculateOffset(new Date(d)) });
+      d.setDate(d.getDate() + 7);
     }
 
     ++idx;
   }
 
   return {
-    major,
-    minor,
+    yearTicks,
+    monthLineTicks,
+    monthLabelTicks,
+    weekTicks,
   };
 });
 
+/** Show month name labels when zoomed in enough */
+const showMonthLabels = computed(() => zoom.value >= 1.4);
+/** Show week tick lines */
+const showWeekTicks = computed(() => zoom.value >= 3.5);
 watch(
   () => props.filtered,
   (filtered): void => {
@@ -139,10 +220,9 @@ onMounted(() => {
 
   const todayOffset: number =
     (new Date().valueOf() - TIMELINE_START.valueOf()) / TOTAL_DURATION;
-  const timelineWidth = 2000;
   const margin = 200;
 
-  const scrollPosition = todayOffset * timelineWidth - margin;
+  const scrollPosition = todayOffset * timelineWidth.value - margin;
   timeline.value.scrollLeft = Math.max(0, scrollPosition);
 });
 </script>
@@ -154,8 +234,9 @@ onMounted(() => {
     @scroll.passive="scroll"
     @mousemove.passive="onTimelineMouseMove"
     @mouseleave.passive="onTimelineMouseLeave"
+    @wheel="onTimelineWheel"
   >
-    <div>
+    <div :style="{ width: timelineWidth + 'px' }">
       <div
         class="today-line"
         :style="{
@@ -184,9 +265,9 @@ onMounted(() => {
         {{ new Date(cursorPos.x).toLocaleDateString("ru-RU") }}
       </div>
 
-      <div v-once class="timeline-header">
+      <div class="timeline-header">
         <div
-          v-for="year of markers.major"
+          v-for="year of markers.yearTicks"
           :key="year.offset"
           class="marker-year"
           :style="{ left: year.offset }"
@@ -194,14 +275,36 @@ onMounted(() => {
           <span>{{ year.year }}</span>
           <div class="marker-line"></div>
         </div>
+
         <div
-          v-for="month of markers.minor"
+          v-for="month of markers.monthLineTicks"
           :key="month"
           class="marker-month"
           :style="{ left: month }"
         >
           <div class="marker-line"></div>
         </div>
+
+        <div
+          v-for="month of markers.monthLabelTicks"
+          v-show="showMonthLabels && month.label"
+          :key="month.offset"
+          class="marker-month-label"
+          :style="{ left: month.offset }"
+        >
+          <span>{{ month.label }}</span>
+        </div>
+
+        <div
+          v-for="week of markers.weekTicks"
+          v-show="showWeekTicks"
+          :key="week.offset"
+          class="marker-week"
+          :style="{ left: week.offset }"
+        >
+          <div class="marker-line"></div>
+        </div>
+
         <div class="today-label" :style="{ left: calculateOffset(new Date()) }">
           {{ new Date().toLocaleDateString("ru-RU") }}
         </div>
@@ -298,7 +401,6 @@ onMounted(() => {
   height: 100%;
 
   > div {
-    width: 2000px;
     position: relative;
 
     > .today-line {
@@ -349,6 +451,31 @@ onMounted(() => {
     width: 1px;
     height: 30%;
     background-color: var(--secondary-color);
+  }
+}
+
+.marker-month-label {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  color: var(--primary-color);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.marker-week {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: end;
+
+  > .marker-line {
+    width: 1px;
+    height: 15%;
+    background-color: var(--secondary-color);
+    opacity: 0.5;
   }
 }
 
