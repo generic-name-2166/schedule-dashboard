@@ -133,7 +133,7 @@ public static class Mutation
 
         try
         {
-            using SepReader reader = Sep.Reader().From(stream);
+            using SepReader reader = Sep.Reader(o => o with { Unescape = true }).From(stream);
 
             // Buffer all rows to compute descendant_end_idx
             List<ParsedRow> rows = new(1024);
@@ -144,20 +144,20 @@ public static class Mutation
                 ++idx;
                 int id = csvRow["Ид"].Parse<int>();
                 int level = csvRow["Уровень"].Parse<int>();
-                ReadOnlySpan<char> wbsCode = csvRow["Код WBS"].Span;
-                ReadOnlySpan<char> code = csvRow["Код"].Span;
-                ReadOnlySpan<char> name = csvRow["Название"].Span;
-                long? startSeconds = ParseDate(csvRow["Начало"].Span);
-                long? endSeconds = ParseDate(csvRow["Окончание"].Span);
+                string wbsCode = csvRow["Код WBS"].ToString();
+                string code = csvRow["Код"].ToString();
+                string name = csvRow["Название"].ToString();
+                long? startSeconds = ParseDate(csvRow["Начало"].ToString());
+                long? endSeconds = ParseDate(csvRow["Окончание"].ToString());
 
                 rows.Add(
                     new ParsedRow
                     {
                         Id = id,
                         Level = level,
-                        WbsCode = wbsCode.ToString(),
-                        Code = code.ToString(),
-                        Name = name.ToString(),
+                        WbsCode = wbsCode,
+                        Code = code,
+                        Name = name,
                         StartSeconds = startSeconds,
                         EndSeconds = endSeconds,
                         DescendantEndIdx = 0, // placeholder, will be computed
