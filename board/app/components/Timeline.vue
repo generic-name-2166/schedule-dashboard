@@ -335,6 +335,8 @@ onMounted(() => {
             :start="start"
             :level="props.filtered[index]!.depth.length"
             :canvas-ctx="sharedCanvasCtx"
+            :start-date="props.filtered[index]!.start"
+            :end-date="props.filtered[index]!.end"
           />
         </li>
       </ul>

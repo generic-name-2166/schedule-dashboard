@@ -8,6 +8,8 @@ const props = defineProps<{
   start: number;
   level: number;
   canvasCtx: CanvasRenderingContext2D | null;
+  startDate?: Date;
+  endDate?: Date;
 }>();
 
 const formatter = new Intl.NumberFormat("ru-RU", {
@@ -62,6 +64,16 @@ onMounted(() => {
 onUnmounted(() => {
   observer.value.disconnect();
 });
+
+const formattedStartDate = computed<string>(() => {
+  if (!props.startDate) return "";
+  return props.startDate.toLocaleDateString("ru-RU");
+});
+
+const formattedEndDate = computed<string>(() => {
+  if (!props.endDate) return "";
+  return props.endDate.toLocaleDateString("ru-RU");
+});
 </script>
 
 <template>
@@ -80,6 +92,22 @@ onUnmounted(() => {
           <span>{{ displayText }}</span>
         </span>
       </p>
+      <span
+        v-if="props.startDate"
+        class="bar-date bar-date-start"
+        :style="{ left: props.left }"
+      >
+        {{ formattedStartDate }}
+      </span>
+      <span
+        v-if="props.endDate"
+        class="bar-date bar-date-end"
+        :style="{
+          left: `calc(${props.left} + ${props.width})`,
+        }"
+      >
+        {{ formattedEndDate }}
+      </span>
     </div>
   </div>
 </template>
@@ -121,5 +149,25 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
   }
+}
+
+.bar-date {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: var(--primary-color);
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: normal;
+}
+
+.bar-date-start {
+  transform: translate(-100%, -50%);
+  padding-right: 0.25rem;
+}
+
+.bar-date-end {
+  padding-left: 0.25rem;
 }
 </style>
