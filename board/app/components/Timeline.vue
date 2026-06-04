@@ -9,8 +9,6 @@ const TIMELINE_END: Date = new Date("2029-01-01");
 const TOTAL_DURATION: number =
   TIMELINE_END.valueOf() - TIMELINE_START.valueOf();
 const BASE_WIDTH = 2000;
-/** percentage of timeline width that fits days text */
-const WIDTH_CUTOFF = 5;
 
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 12;
@@ -104,20 +102,25 @@ function calculateOffset(start?: Date): string {
   return ((offset / TOTAL_DURATION) * 100).toFixed(2) + "%";
 }
 
-function calculateWidth(
-  start?: Date,
-  end?: Date,
-): { percentage: string; type: "big" | "small" } {
+function calculateWidth(start?: Date, end?: Date): string {
   if (!start || !end || start > end) {
-    return { percentage: "0", type: "small" };
+    return "0";
   }
   const duration: number = end.valueOf() - start.valueOf();
   const percentage = (duration / TOTAL_DURATION) * 100;
-  return {
-    percentage: percentage.toFixed(2) + "%",
-    type: percentage > WIDTH_CUTOFF ? "big" : "small",
-  };
+  return percentage.toFixed(2) + "%";
 }
+
+// canvas для мерки "X дней" в TimelineBar
+const sharedCanvasCtx = (() => {
+  const canvas = document?.createElement("canvas");
+  if (!canvas) {
+    // SSR
+    return null;
+  }
+  const ctx = canvas.getContext("2d")!;
+  return ctx;
+})();
 
 interface YearTick {
   year: number;
@@ -331,6 +334,7 @@ onMounted(() => {
             "
             :start="start"
             :level="props.filtered[index]!.depth.length"
+            :canvas-ctx="sharedCanvasCtx"
           />
         </li>
       </ul>
