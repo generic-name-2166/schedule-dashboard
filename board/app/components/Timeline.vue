@@ -113,12 +113,15 @@ function calculateWidth(start?: Date, end?: Date): string {
 
 // canvas для мерки "X дней" в TimelineBar
 const sharedCanvasCtx = (() => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const canvas = document?.createElement("canvas");
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!canvas) {
     // SSR
     return null;
   }
   const ctx = canvas.getContext("2d")!;
+  ctx.font = "bold 1rem serif";
   return ctx;
 })();
 
@@ -153,8 +156,18 @@ const markers = computed<{
   const weekTicks: WeekTick[] = [];
 
   const MONTH_NAMES = [
-    "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
-    "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек",
+    "Янв",
+    "Фев",
+    "Мар",
+    "Апр",
+    "Май",
+    "Июн",
+    "Июл",
+    "Авг",
+    "Сен",
+    "Окт",
+    "Ноя",
+    "Дек",
   ];
 
   let idx = 0;

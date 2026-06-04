@@ -26,7 +26,7 @@ const updateDisplayMode = (): void => {
   const bar = barRef.value;
   if (!bar || !props.canvasCtx) return;
 
-  props.canvasCtx.font = getComputedStyle(bar).font;
+  // props.canvasCtx.font = getComputedStyle(bar).font;
 
   const fullText: string = formatter.format(props.days);
   const numText: string = props.days.toString();
@@ -44,7 +44,7 @@ const updateDisplayMode = (): void => {
   } else {
     displayMode.value = "none";
   }
-}
+};
 
 const displayText = computed<string>(() => {
   if (!props.days) return "";
@@ -80,7 +80,7 @@ const formattedEndDate = computed<string>(() => {
   <div class="bar-offset" :style="{ top: `${props.start}px` }">
     <div class="bar-wrapper" :style="{ '--level': `${props.level * 7.5}%` }">
       <p
-        v-if="props.days && displayMode !== 'none'"
+        v-if="props.days"
         ref="bar"
         class="bar"
         :style="{
@@ -93,7 +93,10 @@ const formattedEndDate = computed<string>(() => {
         </span>
       </p>
       <span
-        v-if="props.startDate"
+        v-if="
+          props.startDate &&
+          props.startDate?.valueOf() !== props.endDate?.valueOf()
+        "
         class="bar-date bar-date-start"
         :style="{ left: props.left }"
       >
